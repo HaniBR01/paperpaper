@@ -1,3 +1,6 @@
+# Docker e variáveis de ambiente
+.env
+postgres_data/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
