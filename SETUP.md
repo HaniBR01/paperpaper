@@ -16,7 +16,7 @@ Este guia descreve os passos para configurar o ambiente de desenvolvimento do pr
 Se você ainda não tem o projeto, clone o repositório do GitHub:
 
 ```bash
-git clone <URL_DO_REPOSITORIO>
+git clone https://github.com/HaniBR01/paperpaper.git
 cd paperpaper
 ```
 
