@@ -7,8 +7,8 @@ __pycache__/
 *$py.class
 
 #files
-testes_de_aceitação.txt
-IMPLEMENTATION.md
+testes_de_aceitacao.txt
+IMPLEMENTACAO.md
 
 # C extensions
 *.so
