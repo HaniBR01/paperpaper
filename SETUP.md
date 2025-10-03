@@ -1,10 +1,10 @@
-# Configuração do Ambiente de Desenvolvimento com Docker
+# Configuração do Ambiente de Desenvolvimento com Conda
 
-Este guia descreve como configurar e rodar o projeto `paperpaper` usando Docker e Docker Compose, incluindo o banco de dados PostgreSQL.
+Este guia descreve como configurar e rodar o projeto `paperpaper` usando Conda e SQLite.
 
 ## Pré-requisitos
 
-- **Docker**: Instale o [Docker Desktop](https://www.docker.com/products/docker-desktop/) para Windows, Linux ou macOS.
+- **Conda**: Instale o [Miniconda](https://docs.conda.io/en/latest/miniconda.html) ou [Anaconda](https://www.anaconda.com/products/distribution)
 - **Git**: Necessário para clonar o repositório.
 
 ---
@@ -20,37 +20,35 @@ git clone git@github.com:HaniBR01/paperpaper.git
 cd paperpaper
 ```
 
-### 2. Configurar as Variáveis de Ambiente
+### 2. Criar o Ambiente Conda
 
-Copie o arquivo `.env.example` para `.env` e ajuste as variáveis conforme necessário:
-
-```bash
-cp .env.example .env
-# Edite o arquivo .env para definir usuário, senha e nome do banco, se desejar
-```
-
-### 3. Subir os Contêineres com Docker Compose
-
-No diretório raiz do projeto, execute:
+Crie e ative o ambiente conda usando o arquivo `environment.yml`:
 
 ```bash
-docker-compose up --build
+conda env create -f environment.yml
+conda activate paperpaper
 ```
 
-O Docker irá:
-- Baixar a imagem do PostgreSQL
-- Construir a imagem da aplicação Django
-- Subir ambos os serviços e garantir que eles possam se comunicar
-
-### 4. Aplicar as Migrações do Banco de Dados
-
-Abra um novo terminal e execute:
+### 3. Aplicar as Migrações do Banco de Dados
 
 ```bash
-docker-compose exec web python manage.py migrate
+python manage.py migrate
 ```
 
-### 5. Acessar a Aplicação
+### 4. Criar um Superusuário (Opcional)
+
+```bash
+python manage.py createsuperuser
+```
+
+### 5. Iniciar o Servidor de Desenvolvimento
+
+```bash
+python manage.py runserver
+```
+```
+
+### 6. Acessar a Aplicação
 
 O servidor estará disponível em `http://localhost:8000/`.
 
@@ -58,22 +56,40 @@ O servidor estará disponível em `http://localhost:8000/`.
 
 ## Comandos Úteis
 
-- Parar os contêineres:
-	```bash
-	docker-compose down
-	```
-- Acessar o shell do Django:
-	```bash
-	docker-compose exec web python manage.py shell
-	```
-- Criar um superusuário:
-	```bash
-	docker-compose exec web python manage.py createsuperuser
-	```
+- **Desativar o ambiente conda:**
+  ```bash
+  conda deactivate
+  ```
+
+- **Reativar o ambiente:**
+  ```bash
+  conda activate paperpaper
+  ```
+
+- **Atualizar dependências:**
+  ```bash
+  conda env update -f environment.yml
+  ```
+
+- **Acessar o shell do Django:**
+  ```bash
+  python manage.py shell
+  ```
+
+- **Executar testes:**
+  ```bash
+  python manage.py test
+  ```
+
+- **Coletar arquivos estáticos:**
+  ```bash
+  python manage.py collectstatic
+  ```
 
 ---
 
 ## Observações
 
-- O banco de dados PostgreSQL terá seus dados persistidos no volume `postgres_data`.
-- O arquivo `.env` **não deve ser enviado para o GitHub**. Use sempre o `.env.example` como referência.
+- O banco de dados SQLite será criado automaticamente como `db.sqlite3` na raiz do projeto.
+- O arquivo de banco de dados **não deve ser enviado para o GitHub**. Adicione `db.sqlite3` ao `.gitignore` se necessário.
+- Para desenvolvimento, o SQLite é suficiente. Para produção, considere usar PostgreSQL ou MySQL.
