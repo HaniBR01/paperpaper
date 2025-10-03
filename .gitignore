@@ -6,6 +6,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#files
+testes_de_aceitação.txt
+IMPLEMENTATION.md
+
 # C extensions
 *.so
 
