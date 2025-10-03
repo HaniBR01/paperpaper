@@ -18,16 +18,21 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import redirect
 from . import views
 
 urlpatterns = [
+    # Custom bibtex import URLs - placed before admin to prevent pattern conflicts
+    path('bibtex-import/', views.bibtex_import, name='bibtex_import'),
+    path('admin/bibtex-import/', lambda request: redirect('admin:paperpaper_bibteximport_changelist'), name='admin_bibtex_import'),
+    
+    # Admin URLs
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
     path('search/', views.search_articles, name='search_articles'),
     path('events/', views.events_list, name='events_list'),
     path('authors/', views.authors_list, name='authors_list'),
     path('notifications/subscribe/', views.notification_subscribe, name='notification_subscribe'),
-    path('admin/bibtex-import/', views.bibtex_import, name='bibtex_import'),
     path('<slug:slug>/', views.event_detail, name='event_detail'),
     path('<slug:slug>/<int:year>/', views.edition_detail, name='edition_detail'),
     path('authors/<slug:slug>/', views.author_detail, name='author_detail'),

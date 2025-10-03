@@ -1,0 +1,48 @@
+{% extends "admin/app_index.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main">
+{% if app_list %}
+    {% for app in app_list %}
+        <div class="app-{{ app.app_label }} module{% if app.app_url in request.path %} current-app{% endif %}">
+            <table>
+                <caption>
+                    <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">{{ app.name }}</a>
+                </caption>
+                {% for model in app.models %}
+                    <tr class="model-{{ model.object_name|lower }}{% if model.admin_url in request.path %} current-model{% endif %}">
+                        <th scope="row">
+                            {% if model.admin_url %}
+                                {% if model.model == 'bibteximport' %}
+                                    <a href="{% url 'bibtex_import' %}">{{ model.name }}</a>
+                                {% else %}
+                                    <a href="{{ model.admin_url }}">{{ model.name }}</a>
+                                {% endif %}
+                            {% else %}
+                                {{ model.name }}
+                            {% endif %}
+                        </th>
+                        <td>
+                            {% if model.add_url and model.model != 'bibteximport' %}
+                                <a href="{{ model.add_url }}" class="addlink">{% translate 'Add' %}</a>
+                            {% endif %}
+                            {% if model.model == 'bibteximport' %}
+                                <a href="{% url 'bibtex_import' %}" class="addlink">{% translate 'Add' %}</a>
+                            {% endif %}
+                            {% if model.admin_url and model.model != 'bibteximport' %}
+                                <a href="{{ model.admin_url }}" class="changelink">{% translate 'Change' %}</a>
+                            {% elif model.model == 'bibteximport' %}
+                                <a href="{{ model.admin_url }}" class="changelink">{% translate 'View' %}</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endfor %}
+{% else %}
+    <p>{% translate 'You don't have permission to view or edit anything.' %}</p>
+{% endif %}
+</div>
+{% endblock %}

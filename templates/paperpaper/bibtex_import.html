@@ -29,12 +29,34 @@
         <div class="alert alert-warning mt-4">
             <h6>Importante:</h6>
             <ul class="mb-0">
-                <li>Campos obrigatórios no BibTeX: title, author, booktitle, year</li>
-                <li>Entradas com campos faltando serão ignoradas</li>
-                <li>Um relatório será mostrado após a importação</li>
+                <li>Campos obrigatórios no BibTeX:</li>
+                <ul>
+                    <li><strong>title:</strong> Título do artigo</li>
+                    <li><strong>author:</strong> Autor(es) do artigo</li>
+                    <li><strong>booktitle:</strong> Nome do evento</li>
+                    <li><strong>year:</strong> Ano de publicação (entre 1900 e 2100)</li>
+                </ul>
+                <li>Entradas com campos faltando ou inválidos serão ignoradas</li>
+                <li>Um relatório detalhado será gerado após a importação</li>
                 <li>Os PDFs devem ter o mesmo nome da chave BibTeX</li>
             </ul>
         </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'warning' %}
+                    <div class="alert alert-info mt-4">
+                        <h6>Motivos comuns para entradas serem puladas:</h6>
+                        <ul>
+                            <li>Campos obrigatórios ausentes ou vazios</li>
+                            <li>Ano em formato inválido ou fora do intervalo permitido</li>
+                            <li>Erro na estrutura do BibTeX</li>
+                        </ul>
+                        <p class="mb-0">Verifique o relatório detalhado para informações específicas sobre cada entrada pulada.</p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 
         <div class="alert alert-info mt-3">
             <h6>Exemplo de entrada BibTeX:</h6>

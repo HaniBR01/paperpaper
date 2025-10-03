@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from django.urls import reverse
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponse
@@ -161,6 +162,10 @@ def notification_subscribe(request):
 @staff_member_required
 def bibtex_import(request):
     """Interface para importação de artigos via BibTeX"""
+    if request.path.startswith('/admin/'):
+        # If accessed through admin URL, redirect to the admin interface
+        return redirect('admin:paperpaper_bibteximport_changelist')
+    
     if request.method == 'POST':
         return handle_bibtex_upload(request)
     
@@ -203,30 +208,79 @@ def handle_bibtex_upload(request):
         log_messages = []
         successful_imports = 0
         failed_imports = 0
+        skipped_entries = []
         
         for entry in bib_database.entries:
             try:
                 result = process_bibtex_entry(entry, pdf_files)
+                entry_id = entry.get('ID', 'Sem ID')
+                entry_title = entry.get('title', '').strip() or 'Sem título'
+                entry_identifier = f"{entry_id} - {entry_title}"
+                
                 if result['success']:
                     successful_imports += 1
-                    log_messages.append(f"✓ {entry.get('title', 'Sem título')}")
+                    log_messages.append(f"✓ Importado com sucesso: {entry_identifier}")
                 else:
                     failed_imports += 1
-                    log_messages.append(f"✗ {entry.get('title', 'Sem título')}: {result['error']}")
+                    entry_info = {
+                        'identifier': entry_identifier,
+                        'reason': result['error']
+                    }
+                    skipped_entries.append(entry_info)
+                    log_messages.append(f"✗ Entrada pulada: {entry_info['identifier']}\n  Motivo: {entry_info['reason']}")
             except Exception as e:
                 failed_imports += 1
-                log_messages.append(f"✗ {entry.get('title', 'Sem título')}: {str(e)}")
+                entry_info = {
+                    'identifier': entry_identifier if 'entry_identifier' in locals() else entry.get('ID', 'Sem ID') + ' - ' + (entry.get('title', '').strip() or 'Sem título'),
+                    'reason': f"Erro inesperado: {str(e)}"
+                }
+                skipped_entries.append(entry_info)
+                log_messages.append(f"✗ Erro ao processar: {entry_info['identifier']}\n  Motivo: {entry_info['reason']}")
+        
+        # Criar relatório detalhado
+        report_messages = [
+            f"Relatório de Importação BibTeX",
+            f"{'=' * 50}",
+            f"Total de entradas: {import_record.total_entries}",
+            f"Importados com sucesso: {successful_imports}",
+            f"Entradas puladas: {failed_imports}",
+            f"Taxa de sucesso: {(successful_imports/import_record.total_entries*100):.1f}%",
+            "",
+            "Detalhes das entradas puladas:",
+            "------------------------"
+        ]
+        
+        for entry in skipped_entries:
+            report_messages.append(f"• {entry['identifier']}")
+            report_messages.append(f"  Motivo: {entry['reason']}")
+            report_messages.append("")
         
         # Atualizar registro de importação
         import_record.successful_imports = successful_imports
         import_record.failed_imports = failed_imports
-        import_record.import_log = '\n'.join(log_messages)
+        import_record.import_log = '\n'.join(report_messages + ['\nLog detalhado:', '-' * 20] + log_messages)
         import_record.save()
         
-        messages.success(
-            request, 
-            f'Importação concluída: {successful_imports} sucessos, {failed_imports} falhas.'
-        )
+        # Create the admin URL using reverse
+        admin_url = reverse('admin:paperpaper_bibteximport_change', args=[import_record.id])
+        
+        # Adicionar mensagem única com todas as informações
+        if failed_imports > 0:
+            messages.warning(
+                request,
+                f'Importação concluída: {successful_imports} sucessos, {failed_imports} falhas. '
+                f'<a class="alert-link" href="{admin_url}">Ver relatório detalhado</a><br><br>'
+                f'{failed_imports} entrada(s) foram puladas. '
+                f'Verifique o relatório detalhado para mais informações.',
+                extra_tags='safe warning'
+            )
+        else:
+            messages.success(
+                request,
+                f'Importação concluída: {successful_imports} sucessos, {failed_imports} falhas. '
+                f'<a class="alert-link" href="{admin_url}">Ver relatório detalhado</a>',
+                extra_tags='safe success'
+            )
         
     except Exception as e:
         messages.error(request, f'Erro ao processar arquivo: {str(e)}')
@@ -237,11 +291,55 @@ def handle_bibtex_upload(request):
 def process_bibtex_entry(entry, pdf_files):
     """Processa uma entrada individual do BibTeX"""
     try:
+        # Get entry identifier for error messages
+        entry_id = entry.get('ID', 'Sem ID')
+        entry_title = entry.get('title', '').strip() or 'Sem título'
+        entry_identifier = f"{entry_id} - {entry_title}"
+
         # Validar campos obrigatórios
-        required_fields = ['title', 'author', 'booktitle', 'year']
-        for field in required_fields:
-            if field not in entry or not entry[field].strip():
-                return {'success': False, 'error': f'Campo obrigatório ausente: {field}'}
+        required_fields = {
+            'title': 'Título',
+            'author': 'Autor(es)',
+            'booktitle': 'Nome do evento',
+            'year': 'Ano'
+        }
+        
+        missing_fields = []
+        invalid_fields = []
+        
+        for field, field_name in required_fields.items():
+            if field not in entry:
+                missing_fields.append(field_name)
+            elif not entry[field].strip():
+                invalid_fields.append(field_name)
+        
+        if missing_fields or invalid_fields:
+            error_msg = []
+            if missing_fields:
+                error_msg.append(f"Campos obrigatórios ausentes: {', '.join(missing_fields)}")
+            if invalid_fields:
+                error_msg.append(f"Campos obrigatórios vazios: {', '.join(invalid_fields)}")
+            return {
+                'success': False,
+                'error': ' | '.join(error_msg),
+                'entry_identifier': entry_identifier
+            }
+            
+        # Validar formato do ano
+        try:
+            year = int(entry['year'])
+            if year < 1900 or year > 2100:
+                return {
+                    'success': False,
+                    'error': f'Ano inválido: {year} (deve estar entre 1900 e 2100)',
+                    'entry_identifier': entry_identifier
+                }
+        except ValueError:
+            return {
+                'success': False,
+                'error': f'Ano em formato inválido: {entry["year"]}',
+                'entry_identifier': entry_identifier
+            }
         
         # Encontrar ou criar evento baseado no booktitle
         booktitle = entry['booktitle']

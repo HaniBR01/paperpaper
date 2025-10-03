@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
+from django.shortcuts import redirect
 from django.db.models import Count
 from .models import Event, Edition, Article, Author, NotificationSubscription, BibtexImport
 
@@ -147,6 +148,25 @@ class BibtexImportAdmin(admin.ModelAdmin):
     list_filter = ('uploaded_by', 'created_at')
     readonly_fields = ('uploaded_by', 'total_entries', 'successful_imports', 
                       'failed_imports', 'import_log', 'created_at')
+    
+    def has_add_permission(self, request):
+        return True  # This allows the "Add" button to appear
+        
+    def get_model_perms(self, request):
+        """
+        Return a dict of all perms for this model. This dict has the keys
+        ``add``, ``change``, and ``delete`` mapping to the True/False for each
+        of those actions.
+        """
+        perms = super().get_model_perms(request)
+        perms['add'] = True  # Explicitly set add permission to True
+        return perms
+        
+    def add_view(self, request, form_url='', extra_context=None):
+        """
+        Redirect the add view to our custom BibTeX import page
+        """
+        return redirect('bibtex_import')
     
     def success_rate(self, obj):
         if obj.total_entries > 0:
