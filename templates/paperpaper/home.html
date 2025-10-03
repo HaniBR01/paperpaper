@@ -1,0 +1,77 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}PaperPaper - Início{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="jumbotron bg-primary text-white p-5 rounded mb-4">
+            <h1 class="display-4">PaperPaper</h1>
+            <p class="lead">Sistema de Gerenciamento de Artigos Acadêmicos</p>
+            <p>Explore artigos, autores e eventos acadêmicos de forma simples e organizada.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ events_count }}</h5>
+                <p class="card-text">Eventos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ articles_count }}</h5>
+                <p class="card-text">Artigos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">{{ authors_count }}</h5>
+                <p class="card-text">Autores</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <a href="{% url 'search_articles' %}" class="btn btn-primary">Buscar</a>
+                </h5>
+                <p class="card-text">Artigos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if recent_articles %}
+<div class="row">
+    <div class="col-12">
+        <h3>Artigos Recentes</h3>
+        <div class="list-group">
+            {% for article in recent_articles %}
+            <div class="list-group-item">
+                <h5 class="mb-1">{{ article.title }}</h5>
+                <p class="mb-1">
+                    <strong>Autores:</strong> {{ article.authors_string }}<br>
+                    <strong>Evento:</strong> 
+                    <a href="{% url 'edition_detail' article.edition.event.slug article.edition.year %}">
+                        {{ article.edition.event.name }} {{ article.edition.year }}
+                    </a>
+                </p>
+                {% if article.pdf_file %}
+                <small><a href="{{ article.pdf_file.url }}" target="_blank">📄 Baixar PDF</a></small>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

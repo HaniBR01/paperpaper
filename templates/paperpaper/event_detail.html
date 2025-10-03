@@ -1,0 +1,45 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}{{ event.name }} - PaperPaper{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+                <li class="breadcrumb-item active">{{ event.acronym }}</li>
+            </ol>
+        </nav>
+
+        <h1>{{ event.name }} ({{ event.acronym }})</h1>
+        <p class="lead">{{ event.promoting_entity }}</p>
+
+        {% if editions %}
+            <h3>Edições Disponíveis</h3>
+            <div class="row">
+                {% for edition in editions %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ edition.year }}</h5>
+                            <p class="card-text">
+                                <strong>Local:</strong> {{ edition.location }}<br>
+                                <strong>Artigos:</strong> {{ edition.articles.count }}
+                            </p>
+                            <a href="{% url 'edition_detail' event.slug edition.year %}" class="btn btn-primary">
+                                Ver Artigos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Nenhuma edição cadastrada para este evento ainda.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

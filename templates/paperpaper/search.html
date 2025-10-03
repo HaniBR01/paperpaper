@@ -1,0 +1,73 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}Buscar Artigos - PaperPaper{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Buscar Artigos</h2>
+        
+        <form method="get" class="mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <select name="type" class="form-select">
+                        <option value="title" {% if search_type == 'title' %}selected{% endif %}>Por Título</option>
+                        <option value="author" {% if search_type == 'author' %}selected{% endif %}>Por Autor</option>
+                        <option value="event" {% if search_type == 'event' %}selected{% endif %}>Por Evento</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" name="q" class="form-control" placeholder="Digite sua busca..." value="{{ query }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Buscar</button>
+                </div>
+            </div>
+        </form>
+
+        {% if query %}
+            <h4>Resultados para "{{ query }}" ({{ results_count }} encontrados)</h4>
+            
+            {% if results %}
+                <div class="list-group">
+                    {% for article in results %}
+                    <div class="list-group-item">
+                        <h5 class="mb-1">{{ article.title }}</h5>
+                        <p class="mb-1">
+                            <strong>Autores:</strong> 
+                            {% for author in article.authors.all %}
+                                <a href="{% url 'author_detail' author.slug %}">{{ author.full_name }}</a>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p class="mb-1">
+                            <strong>Evento:</strong> 
+                            <a href="{% url 'edition_detail' article.edition.event.slug article.edition.year %}">
+                                {{ article.edition.event.name }} {{ article.edition.year }}
+                            </a>
+                        </p>
+                        {% if article.pages_range %}
+                        <p class="mb-1"><strong>Páginas:</strong> {{ article.pages_range }}</p>
+                        {% endif %}
+                        {% if article.pdf_file %}
+                        <p class="mb-1">
+                            <a href="{{ article.pdf_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                📄 Baixar PDF
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    Nenhum artigo encontrado para sua busca.
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info">
+                Use o formulário acima para buscar artigos por título, autor ou evento.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

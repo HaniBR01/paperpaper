@@ -1,0 +1,63 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}{{ author.full_name }} - PaperPaper{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}">Início</a></li>
+                <li class="breadcrumb-item">Autores</li>
+                <li class="breadcrumb-item active">{{ author.full_name }}</li>
+            </ol>
+        </nav>
+
+        <h1>{{ author.full_name }}</h1>
+        <p class="lead">{{ total_articles }} artigo{{ total_articles|pluralize }} publicado{{ total_articles|pluralize }}</p>
+
+        {% if articles_by_year %}
+            {% for year, articles in articles_by_year.items %}
+            <div class="mb-4">
+                <h3>{{ year }}</h3>
+                <div class="list-group">
+                    {% for article in articles %}
+                    <div class="list-group-item">
+                        <h5 class="mb-1">{{ article.title }}</h5>
+                        <p class="mb-1">
+                            <strong>Evento:</strong> 
+                            <a href="{% url 'edition_detail' article.edition.event.slug article.edition.year %}">
+                                {{ article.edition.event.name }} {{ article.edition.year }}
+                            </a>
+                        </p>
+                        <p class="mb-1">
+                            <strong>Outros autores:</strong> 
+                            {% for co_author in article.authors.all %}
+                                {% if co_author != author %}
+                                    <a href="{% url 'author_detail' co_author.slug %}">{{ co_author.full_name }}</a>{% if not forloop.last %}, {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </p>
+                        {% if article.pages_range %}
+                        <p class="mb-1"><strong>Páginas:</strong> {{ article.pages_range }}</p>
+                        {% endif %}
+                        {% if article.pdf_file %}
+                        <p class="mb-1">
+                            <a href="{{ article.pdf_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                📄 Baixar PDF
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">
+                Nenhum artigo encontrado para este autor.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

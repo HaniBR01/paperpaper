@@ -1,0 +1,52 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}Importar BibTeX - PaperPaper{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Importar Artigos via BibTeX</h2>
+        <p class="lead">Faça upload de um arquivo BibTeX e opcionalmente um ZIP com os PDFs dos artigos.</p>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="bibtex_file" class="form-label">Arquivo BibTeX *</label>
+                <input type="file" class="form-control" id="bibtex_file" name="bibtex_file" accept=".bib,.txt" required>
+                <div class="form-text">Arquivo com as referências BibTeX dos artigos.</div>
+            </div>
+            <div class="mb-3">
+                <label for="zip_file" class="form-label">Arquivo ZIP com PDFs (opcional)</label>
+                <input type="file" class="form-control" id="zip_file" name="zip_file" accept=".zip">
+                <div class="form-text">
+                    ZIP contendo os PDFs. O nome de cada arquivo deve ser igual à chave BibTeX (ex: sbes-paper1.pdf).
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Importar Artigos</button>
+            <a href="{% url 'admin:index' %}" class="btn btn-secondary">Voltar ao Admin</a>
+        </form>
+
+        <div class="alert alert-warning mt-4">
+            <h6>Importante:</h6>
+            <ul class="mb-0">
+                <li>Campos obrigatórios no BibTeX: title, author, booktitle, year</li>
+                <li>Entradas com campos faltando serão ignoradas</li>
+                <li>Um relatório será mostrado após a importação</li>
+                <li>Os PDFs devem ter o mesmo nome da chave BibTeX</li>
+            </ul>
+        </div>
+
+        <div class="alert alert-info mt-3">
+            <h6>Exemplo de entrada BibTeX:</h6>
+            <pre><code>@inproceedings{sbes-paper1,
+  author = {João Silva and Maria Santos},
+  title = {Título do Artigo},
+  booktitle = {Anais do SBES},
+  year = {2024},
+  pages = {1--10},
+  publisher = {SBC},
+}</code></pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

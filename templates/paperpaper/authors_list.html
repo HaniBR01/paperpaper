@@ -1,0 +1,90 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}Autores - PaperPaper{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Autores</h1>
+        <p class="lead">Explore todos os autores cadastrados no sistema.</p>
+
+        {% if authors %}
+            <div class="row">
+                {% for author in authors %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ author.full_name }}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    {{ author.articles_count }} artigo{{ author.articles_count|pluralize }}
+                                </small>
+                            </p>
+                            <a href="{% url 'author_detail' author.slug %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-person"></i> Ver Perfil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginação -->
+            {% if is_paginated %}
+            <nav aria-label="Navegação dos autores">
+                <ul class="pagination justify-content-center">
+                    {% if authors.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1" aria-label="Primeira">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ authors.previous_page_number }}" aria-label="Anterior">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {% for num in authors.paginator.page_range %}
+                        {% if authors.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > authors.number|add:'-3' and num < authors.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if authors.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ authors.next_page_number }}" aria-label="Próxima">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ authors.paginator.num_pages }}" aria-label="Última">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <p class="text-center text-muted">
+                Página {{ authors.number }} de {{ authors.paginator.num_pages }} 
+                ({{ authors.paginator.count }} autores no total)
+            </p>
+            {% endif %}
+
+        {% else %}
+            <div class="alert alert-info">
+                <h5>Nenhum autor encontrado</h5>
+                <p class="mb-0">Ainda não há autores cadastrados no sistema.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
