@@ -1,0 +1,42 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}
+    {% if is_edit %}
+        Editar {{ event.name }}
+    {% else %}
+        Novo Evento
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>
+        {% if is_edit %}
+            Editar {{ event.name }}
+        {% else %}
+            Novo Evento
+        {% endif %}
+    </h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="name" class="form-label">Nome do Evento</label>
+            <input type="text" class="form-control" id="name" name="name" 
+                   value="{{ event.name|default:'' }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="acronym" class="form-label">Sigla</label>
+            <input type="text" class="form-control" id="acronym" name="acronym"
+                   value="{{ event.acronym|default:'' }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="promoting_entity" class="form-label">Entidade Promotora</label>
+            <input type="text" class="form-control" id="promoting_entity" name="promoting_entity"
+                   value="{{ event.promoting_entity|default:'' }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% url 'events_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

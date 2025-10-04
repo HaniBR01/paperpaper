@@ -117,46 +117,196 @@
         
         /* Dark theme styles */
         [data-theme="dark"] {
-            background-color: #121212;
-            color: #ffffff;
+            background-color: #121212 !important;
+            color: #e0e0e0;
         }
+        
+        [data-theme="dark"] body {
+            background-color: #121212 !important;
+            color: #e0e0e0;
+        }
+
         [data-theme="dark"] .navbar {
-            background-color: #1f1f1f !important;
+            background-color: #0d4898 !important;
+            border-bottom: 1px solid #0d5bc0;
+        }
+        [data-theme="dark"] .navbar-dark {
+            background-color: #0d4898 !important;
+        }
+        [data-theme="dark"] .navbar-brand,
+        [data-theme="dark"] .navbar-nav .nav-link {
+            color: #fff !important;
         }
         [data-theme="dark"] .card {
-            background-color: #1e1e1e;
+            background-color: #1e1e1e !important;
             border-color: #333;
-        }
+        
         [data-theme="dark"] .list-group-item {
             background-color: #1e1e1e;
             border-color: #333;
-            color: #ffffff;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .list-group-item:hover {
+            background-color: #252525;
+        }
+        
+        /* Alerts Dark Theme */
+        [data-theme="dark"] .alert {
+            background-color: #252525;
+            border-color: #333;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .alert-info {
+            background-color: #1a2632;
+            border-color: #0f5890;
+            color: #9fcdff;
+        }
+        
+        /* Forms Dark Theme */
+        [data-theme="dark"] .form-control {
+            background-color: #252525;
+            border-color: #333;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .form-control:focus {
+            background-color: #2c2c2c;
+            border-color: #0d6efd;
+            color: #e0e0e0;
+        }
+        [data-theme="dark"] .form-select {
+            background-color: #252525;
+            border-color: #333;
+            color: #e0e0e0;
+        }
+        
+        /* Links Dark Theme */
+        [data-theme="dark"] a {
+            color: #3d7dd4;
+        }
+        [data-theme="dark"] a:hover {
+            color: #5b9eff;
+        }
+        
+        /* Tables Dark Theme */
+        [data-theme="dark"] .table {
+            color: #e0e0e0;
+            background-color: #1e1e1e !important;
+        }
+        [data-theme="dark"] .table td,
+        [data-theme="dark"] .table th {
+            border-color: #333;
+            background-color: #1e1e1e !important;
+        }
+        [data-theme="dark"] .table-hover tbody tr:hover {
+            background-color: #252525 !important;
+            color: #e0e0e0;
+        }
+        
+        /* Buttons Dark Theme */
+        [data-theme="dark"] .btn-primary {
+            background-color: #0d4898 !important;
+            border-color: #0d4898 !important;
+            color: #fff;
+        }
+        [data-theme="dark"] .btn-primary:hover {
+            background-color: #0d5bc0 !important;
+            border-color: #0d5bc0 !important;
+        }
+        [data-theme="dark"] .btn-outline-primary {
+            color: #3d7dd4;
+            border-color: #3d7dd4;
+        }
+        [data-theme="dark"] .btn-outline-primary:hover {
+            background-color: #3d7dd4;
+            color: #121212;
+        }
+        
+        /* Badge Dark Theme */
+        [data-theme="dark"] .badge.bg-success {
+            background-color: #1e4620 !important;
+            color: #8ff791;
+        }
+        
+        /* Footer Dark Theme */
+        [data-theme="dark"] footer.bg-light {
+            background-color: #1f1f1f !important;
+            color: #e0e0e0;
+            border-top: 1px solid #333;
+        }
+        
+        /* Text Colors Dark Theme */
+        [data-theme="dark"] .text-muted {
+            color: #888 !important;
+        }
+        [data-theme="dark"] .text-dark {
+            color: #e0e0e0 !important;
         }
         [data-theme="dark"] .bg-light {
             background-color: #1f1f1f !important;
+            color: #e0e0e0;
+        }
+        /* Blue backgrounds and elements in dark mode */
+        [data-theme="dark"] .bg-primary {
+            background-color: #0d4898 !important;
+        }
+        [data-theme="dark"] .bg-info {
+            background-color: #0d4898 !important;
+        }
+        [data-theme="dark"] .text-primary {
+            color: #3d7dd4 !important;
+        }
+        [data-theme="dark"] .text-info {
+            color: #3d7dd4 !important;
+        }
+        [data-theme="dark"] .btn-info {
+            background-color: #0d4898 !important;
+            border-color: #0d4898 !important;
+            color: #fff !important;
+        }
+        [data-theme="dark"] .btn-info:hover {
+            background-color: #0d5bc0 !important;
+            border-color: #0d5bc0 !important;
+        }
+        [data-theme="dark"] .alert-primary {
+            background-color: #0d4898 !important;
+            border-color: #0d5bc0 !important;
+            color: #fff !important;
         }
         [data-theme="dark"] .alert-info {
-            background-color: #1a2332;
-            border-color: #1e3a5f;
-            color: #9ec5fe;
+            background-color: #0d4898 !important;
+            border-color: #0d5bc0 !important;
+            color: #fff !important;
         }
-        [data-theme="dark"] .btn-outline-primary {
-            color: #86b7fe;
-            border-color: #86b7fe;
+        [data-theme="dark"] .badge.bg-primary,
+        [data-theme="dark"] .badge.bg-info {
+            background-color: #0d4898 !important;
+            color: #fff !important;
         }
-        [data-theme="dark"] .btn-outline-primary:hover {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
+        [data-theme="dark"] .list-group-item.active {
+            background-color: #0d4898 !important;
+            border-color: #0d5bc0 !important;
         }
-        [data-theme="dark"] .form-control {
-            background-color: #2b2b2b;
-            border-color: #495057;
-            color: #ffffff;
+        [data-theme="dark"] .form-control:focus {
+            border-color: #0d5bc0 !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 72, 152, 0.25) !important;
         }
-        [data-theme="dark"] .form-select {
-            background-color: #2b2b2b;
-            border-color: #495057;
-            color: #ffffff;
+        [data-theme="dark"] .pagination .page-link {
+            background-color: #1e1e1e !important;
+            border-color: #333 !important;
+            color: #3d7dd4 !important;
+        }
+        [data-theme="dark"] .pagination .page-link:hover {
+            background-color: #0d4898 !important;
+            color: #fff !important;
+        }
+        [data-theme="dark"] .pagination .active .page-link {
+            background-color: #0d4898 !important;
+            border-color: #0d4898 !important;
+            color: #fff !important;
+        }
+        [data-theme="dark"] ::selection {
+            background-color: #0d4898 !important;
+            color: #fff !important;
         }
         
         @media (max-width: 768px) {
@@ -250,9 +400,12 @@
                     <span class="navbar-text me-3">
                         Olá, {{ user.first_name|default:user.username }}!
                     </span>
-                    <a href="{% url 'admin:logout' %}" class="btn btn-outline-light btn-sm">
-                        <i class="bi bi-box-arrow-right"></i> Sair
-                    </a>
+                    <form method="post" action="{% url 'admin_logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Sair
+                        </button>
+                    </form>
                 {% else %}
                     <a href="{% url 'admin:login' %}" class="btn btn-outline-light btn-sm">
                         <i class="bi bi-box-arrow-in-right"></i> Entrar
