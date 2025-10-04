@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.shortcuts import redirect
+from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
@@ -28,9 +29,14 @@ urlpatterns = [
     
     # Admin URLs
     path('admin/', admin.site.urls),
+    path('admin/logout/', auth_views.LogoutView.as_view(next_page='home'), name='admin_logout'),
+    path('login/', auth_views.LoginView.as_view(template_name='paperpaper/login.html'), name='login'),
     path('', views.home, name='home'),
     path('search/', views.search_articles, name='search_articles'),
     path('events/', views.events_list, name='events_list'),
+    path('events/create/', views.event_create, name='event_create'),
+    path('events/<slug:slug>/edit/', views.event_edit, name='event_edit'),
+    path('events/<slug:slug>/delete/', views.event_delete, name='event_delete'),
     path('authors/', views.authors_list, name='authors_list'),
     path('notifications/subscribe/', views.notification_subscribe, name='notification_subscribe'),
     path('articles/<int:pk>/', views.article_detail, name='article_detail'),  # Added article detail URL

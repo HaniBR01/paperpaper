@@ -36,21 +36,84 @@ def events_list(request):
     }
     return render(request, 'paperpaper/events_list.html', context)
 
+@staff_member_required
+def event_create(request):
+    """Criar novo evento"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        acronym = request.POST.get('acronym')
+        promoting_entity = request.POST.get('promoting_entity')
+        
+        if name and acronym and promoting_entity:
+            event = Event.objects.create(
+                name=name,
+                acronym=acronym,
+                promoting_entity=promoting_entity
+            )
+            messages.success(request, 'Evento criado com sucesso!')
+            return redirect(event.get_absolute_url())
+        else:
+            messages.error(request, 'Por favor, preencha todos os campos.')
+    
+    return render(request, 'paperpaper/event_form.html')
+
+@staff_member_required
+def event_edit(request, slug):
+    """Editar evento existente"""
+    event = get_object_or_404(Event, slug=slug)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        acronym = request.POST.get('acronym')
+        promoting_entity = request.POST.get('promoting_entity')
+        
+        if name and acronym and promoting_entity:
+            event.name = name
+            event.acronym = acronym
+            event.promoting_entity = promoting_entity
+            event.save()
+            messages.success(request, 'Evento atualizado com sucesso!')
+            return redirect(event.get_absolute_url())
+        else:
+            messages.error(request, 'Por favor, preencha todos os campos.')
+    
+    context = {
+        'event': event,
+        'is_edit': True
+    }
+    return render(request, 'paperpaper/event_form.html', context)
+
+@staff_member_required
+def event_delete(request, slug):
+    """Deletar evento existente"""
+    event = get_object_or_404(Event, slug=slug)
+    
+    if request.method == 'POST':
+        event.delete()
+        messages.success(request, 'Evento removido com sucesso!')
+        return redirect('events_list')
+    
+    context = {
+        'event': event
+    }
+    return render(request, 'paperpaper/event_confirm_delete.html', context)
+
 
 def authors_list(request):
     """Lista todos os autores disponíveis"""
-    authors = Author.objects.all().annotate(
-        articles_count=Count('articles')
-    ).order_by('full_name')
-    
+    query = request.GET.get('q', '').strip()
+    authors = Author.objects.all()
+    if query:
+        authors = authors.filter(full_name__icontains=query)
+    authors = authors.annotate(articles_count=Count('articles')).order_by('full_name')
     # Paginação opcional
     paginator = Paginator(authors, 50)  # 50 autores por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
     context = {
         'authors': page_obj,
-        'is_paginated': paginator.num_pages > 1
+        'is_paginated': paginator.num_pages > 1,
+        'query': query
     }
     return render(request, 'paperpaper/authors_list.html', context)
 
