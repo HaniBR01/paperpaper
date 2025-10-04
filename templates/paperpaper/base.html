@@ -420,12 +420,35 @@
         <main class="container mt-4">
             {% if messages %}
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    {% with msg_class=message.tags|cut:'safe '|default:'info' %}
+                    <div class="alert alert-{{ msg_class }} alert-dismissible fade show" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-grow-1">
+                                {{ message|safe }}
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
                     </div>
+                    {% endwith %}
                 {% endfor %}
             {% endif %}
+            
+            <style>
+                .alert.alert-warning a {
+                    color: #664d03;
+                    text-decoration: underline;
+                }
+                .alert.alert-warning a:hover {
+                    color: #523e02;
+                }
+                .alert.alert-success a {
+                    color: #0f5132;
+                    text-decoration: underline;
+                }
+                .alert.alert-success a:hover {
+                    color: #0c4128;
+                }
+            </style>
 
             {% block content %}
             {% endblock %}

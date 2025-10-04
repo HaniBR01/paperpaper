@@ -1,0 +1,36 @@
+@inproceedings{sbes-paper1,
+ author = {Davi Freitas and Breno Miranda and Juliano Iyoda},
+ title = {Robotic-supported Data Loss Detection in Android Applications},
+ booktitle = {Anais do XXXVIII Simpósio Brasileiro de Engenharia de Software},
+ year = {2024},
+ pages = {1--11},
+ publisher = {SBC},
+ }
+
+@inproceedings{sbes-paper2,
+ author = {Fábio Santos and Julio Duarte and Ricardo Choren},
+ booktitle = {Anais do XXXVIII Simpósio Brasileiro de Engenharia de Software},
+ year = {2024},
+ pages = {12--23},
+ publisher = {SBC}, 
+}
+
+@inproceedings{sbes-paper3,
+ author = {Gabriel Busquim and Allysson Araújo and Maria Lima and Marcos Kalinowski},
+ title = {Towards Effective Collaboration between Software Engineers and Data Scientists developing Machine Learning-Enabled Systems},
+ booktitle = {Anais do XXXVIII Simpósio Brasileiro de Engenharia de Software},
+ location = {Curitiba/PR},
+ year = {2024},
+ publisher = {SBC},
+ }
+
+@inproceedings{sbes-paper4,
+ author = {Felipe Cordeiro and Aline Vasconcelos and Rodrigo Santos and Patricia Lago},
+ title = {Investigating Accountability in Business-intensive Systems-of-Systems},
+ booktitle = {Anais do XXXVIII Simpósio Brasileiro de Engenharia de Software},
+ location = {Curitiba/PR},
+ year = {2024},
+ pages = {35--46},
+ publisher = {SBC},
+}
+

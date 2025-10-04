@@ -3,6 +3,7 @@ from django.contrib.auth.models import Group, User
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
+from django.shortcuts import redirect
 from django.db.models import Count
 from .models import Event, Edition, Article, Author, NotificationSubscription, BibtexImport
 
@@ -129,6 +130,13 @@ class NotificationSubscriptionAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
     actions = ['activate_subscriptions', 'deactivate_subscriptions']
 
+    def has_add_permission(self, request):
+        return True  # Keep the "Add" button visible
+    
+    def add_view(self, request, form_url='', extra_context=None):
+        """Redirect the add view to our custom subscription page"""
+        return redirect('notification_subscribe')
+
     def activate_subscriptions(self, request, queryset):
         updated = queryset.update(is_active=True)
         self.message_user(request, f'{updated} inscrições ativadas.')
@@ -148,6 +156,13 @@ class BibtexImportAdmin(admin.ModelAdmin):
     readonly_fields = ('uploaded_by', 'total_entries', 'successful_imports', 
                       'failed_imports', 'import_log', 'created_at')
     
+    def has_add_permission(self, request):
+        return True  # Keep the "Import BibTeX" button visible
+        
+    def add_view(self, request, form_url='', extra_context=None):
+        """Redirect the add view to our custom BibTeX import page"""
+        return redirect('bibtex_import')
+    
     def success_rate(self, obj):
         if obj.total_entries > 0:
             rate = (obj.successful_imports / obj.total_entries) * 100
@@ -155,8 +170,12 @@ class BibtexImportAdmin(admin.ModelAdmin):
         return "0%"
     success_rate.short_description = 'Taxa de Sucesso'
 
-    def has_add_permission(self, request):
-        return False  # Importações são criadas via interface personalizada
+    def changelist_view(self, request, extra_context=None):
+        """Customize the change list view to rename the 'Add' button"""
+        extra_context = extra_context or {}
+        extra_context['title'] = 'Importações BibTeX'  # Custom title
+        extra_context['add_button_name'] = 'Importar BibTeX'  # Custom button text
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 # Customização do site admin

@@ -55,7 +55,10 @@ ROOT_URLCONF = 'paperpaper.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'paperpaper' / 'templates',  # Project-level templates
+            BASE_DIR / 'templates',  # Alternative location
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -123,7 +126,13 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email configuration (para notificações)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Para desenvolvimento
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'paperpaperlib@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'xnkd bubn tzxl xdiw'  # Your Gmail app password
+DEFAULT_FROM_EMAIL = 'paperpaperlib@gmail.com'  # Your Gmail address
 
 # Configurações de login
 LOGIN_URL = '/admin/login/'
