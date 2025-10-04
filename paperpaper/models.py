@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.urls import reverse
+from django.db.models.signals import post_save, m2m_changed
+from django.dispatch import receiver
 import os
 
 
@@ -125,6 +127,69 @@ class Article(models.Model):
     def authors_string(self):
         """Retorna string com nomes dos autores separados por vírgula"""
         return ", ".join(self.authors_list)
+    
+    def save(self, *args, **kwargs):
+        # Check if this is a new article (no ID means it's new)
+        is_new = not self.pk
+        print(f"\nSaving article: {self.title}")
+        print(f"Is new article: {is_new}")
+        
+        # First save the article
+        super().save(*args, **kwargs)
+        
+        # Only send notifications for new articles
+        if is_new:
+            print("This is a new article, preparing to send notifications...")
+            try:
+                from django.core.mail import send_mail
+                from django.conf import settings
+                from django.urls import reverse
+                
+                # Get the base URL
+                protocol = 'http'  # or 'https' in production
+                domain = 'localhost:8000'  # Update this for production
+                
+                # For each author of the article
+                for author in self.authors.all():
+                    # Find active subscriptions for this author
+                    subscriptions = NotificationSubscription.objects.filter(
+                        full_name__iexact=author.full_name,
+                        is_active=True
+                    )
+                    
+                    # Generate the article URL
+                    article_url = f'{protocol}://{domain}{reverse("article_detail", kwargs={"pk": self.pk})}'
+                    
+                    # Send email to each subscriber
+                    for subscription in subscriptions:
+                        print(f"Found subscription for {subscription.full_name} ({subscription.email})")
+                        subject = f'Novo artigo disponível: {self.title}'
+                        message = f"""
+Olá {subscription.full_name},
+
+Um novo artigo seu foi adicionado ao sistema PaperPaper:
+
+Título: {self.title}
+Evento: {self.edition.event.name}
+Ano: {self.edition.year}
+Autores: {self.authors_string}
+
+Você pode visualizar o artigo em: {article_url}
+
+Atenciosamente,
+Equipe PaperPaper
+                        """
+                        
+                        send_mail(
+                            subject,
+                            message,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [subscription.email],
+                            fail_silently=False
+                        )
+            except Exception as e:
+                # Log the error but don't prevent article creation
+                print(f"Error sending notification: {str(e)}")
 
 
 class NotificationSubscription(models.Model):
@@ -161,3 +226,71 @@ class BibtexImport(models.Model):
 
     def __str__(self):
         return f"Importação {self.id} - {self.created_at.strftime('%d/%m/%Y %H:%M')}"
+
+
+def send_article_notifications(article):
+    """Função auxiliar para enviar notificações"""
+    try:
+        from django.core.mail import send_mail
+        from django.conf import settings
+        from django.urls import reverse
+        
+        print(f"\nPreparing notifications for article: {article.title}")
+        
+        # Get the base URL
+        protocol = 'http'  # or 'https' in production
+        domain = 'localhost:8000'  # Update this for production
+        
+        # For each author of the article
+        for author in article.authors.all():
+            print(f"Checking notifications for author: {author.full_name}")
+            # Find active subscriptions for this author
+            subscriptions = NotificationSubscription.objects.filter(
+                full_name__iexact=author.full_name,
+                is_active=True
+            )
+            
+            print(f"Found {subscriptions.count()} active subscriptions")
+            
+            # Generate the article URL
+            article_url = f'{protocol}://{domain}{reverse("article_detail", kwargs={"pk": article.pk})}'
+            
+            # Send email to each subscriber
+            for subscription in subscriptions:
+                print(f"Sending email to {subscription.email}")
+                subject = f'Novo artigo disponível: {article.title}'
+                message = f"""
+Olá {subscription.full_name},
+
+Um novo artigo seu foi adicionado ao sistema PaperPaper:
+
+Título: {article.title}
+Evento: {article.edition.event.name}
+Ano: {article.edition.year}
+Autores: {article.authors_string}
+
+Você pode visualizar o artigo em: {article_url}
+
+Atenciosamente,
+Equipe PaperPaper
+                """
+                
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [subscription.email],
+                    fail_silently=False
+                )
+                print(f"Email sent successfully to {subscription.email}")
+    except Exception as e:
+        print(f"Error sending notification: {str(e)}")
+
+
+@receiver(m2m_changed, sender=Article.authors.through)
+def handle_article_authors_changed(sender, instance, action, **kwargs):
+    """Handler for when authors are added to an article"""
+    print(f"\nAuthors m2m changed: {action}")
+    if action == "post_add":
+        print("Authors were added, sending notifications...")
+        send_article_notifications(instance)

@@ -9,6 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.sites.shortcuts import get_current_site
 import zipfile
 import bibtexparser
 import tempfile
@@ -131,6 +132,15 @@ def author_detail(request, slug):
     return render(request, 'paperpaper/author_detail.html', context)
 
 
+def article_detail(request, pk):
+    """Página de detalhes do artigo"""
+    article = get_object_or_404(Article, pk=pk)
+    context = {
+        'article': article
+    }
+    return render(request, 'paperpaper/article_detail.html', context)
+
+
 def notification_subscribe(request):
     """Página para cadastro de notificações"""
     if request.method == 'POST':
@@ -212,7 +222,7 @@ def handle_bibtex_upload(request):
         
         for entry in bib_database.entries:
             try:
-                result = process_bibtex_entry(entry, pdf_files)
+                result = process_bibtex_entry(entry, pdf_files, request)
                 entry_id = entry.get('ID', 'Sem ID')
                 entry_title = entry.get('title', '').strip() or 'Sem título'
                 entry_identifier = f"{entry_id} - {entry_title}"
@@ -288,7 +298,7 @@ def handle_bibtex_upload(request):
     return redirect('bibtex_import')
 
 
-def process_bibtex_entry(entry, pdf_files):
+def process_bibtex_entry(entry, pdf_files, request=None):
     """Processa uma entrada individual do BibTeX"""
     try:
         # Get entry identifier for error messages
@@ -385,11 +395,16 @@ def process_bibtex_entry(entry, pdf_files):
             bibtex_key=entry.get('ID', '')
         )
         
+        print(f"\nCreated article: {article.title}")
+        
         # Adicionar autores ao artigo
         article.authors.set(authors)
+        print(f"Added authors: {[a.full_name for a in authors]}")
         
         # Adicionar PDF se disponível
         bibtex_key = entry.get('ID', '')
+        
+        print("About to send notifications...")
         if bibtex_key in pdf_files:
             # Salvar PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
@@ -406,7 +421,9 @@ def process_bibtex_entry(entry, pdf_files):
             os.unlink(temp_file_path)
         
         # Enviar notificações
-        send_notifications_for_article(article)
+        print("Calling send_notifications_for_article...")
+        send_notifications_for_article(article, request)
+        print("Notifications processing completed")
         
         return {'success': True}
         
@@ -414,18 +431,35 @@ def process_bibtex_entry(entry, pdf_files):
         return {'success': False, 'error': str(e)}
 
 
-def send_notifications_for_article(article):
+def send_notifications_for_article(article, request=None):
     """Envia notificações por email para autores cadastrados"""
+    from django.contrib.sites.shortcuts import get_current_site
+    from django.urls import reverse
+
+    print(f"\nProcessing notifications for article: {article.title}")
     for author in article.authors.all():
+        print(f"Checking subscriptions for author: {author.full_name}")
         # Buscar inscrições ativas para este autor
         subscriptions = NotificationSubscription.objects.filter(
             full_name__iexact=author.full_name,
             is_active=True
         )
         
+        print(f"Found {subscriptions.count()} active subscriptions for {author.full_name}")
         for subscription in subscriptions:
             try:
                 subject = f'Novo artigo disponível: {article.title}'
+                
+                # Generate the full URL
+                article_url = reverse('article_detail', kwargs={'pk': article.pk})
+                if request:
+                    article_url = request.build_absolute_uri(article_url)
+                else:
+                    # Fallback if request is not available
+                    protocol = 'http'  # or 'https' in production
+                    domain = 'localhost:8000'  # Update this for production
+                    article_url = f'{protocol}://{domain}{article_url}'
+                
                 message = f"""
 Olá {subscription.full_name},
 
@@ -436,18 +470,20 @@ Evento: {article.edition.event.name}
 Ano: {article.edition.year}
 Autores: {article.authors_string}
 
-Você pode visualizar o artigo em: {article.get_absolute_url()}
+Você pode visualizar o artigo em: {article_url}
 
 Atenciosamente,
 Equipe PaperPaper
                 """
                 
+                print(f"Attempting to send email to: {subscription.email}")
                 send_mail(
                     subject,
                     message,
                     settings.DEFAULT_FROM_EMAIL,
                     [subscription.email],
-                    fail_silently=True
+                    fail_silently=False  # Changed to False to see errors
                 )
-            except Exception:
-                pass  # Falhas de email não devem interromper o processo
+                print("Email sent successfully!")
+            except Exception as e:
+                print(f"Failed to send email: {str(e)}")  # Now logging the error

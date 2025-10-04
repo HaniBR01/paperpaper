@@ -33,6 +33,7 @@ urlpatterns = [
     path('events/', views.events_list, name='events_list'),
     path('authors/', views.authors_list, name='authors_list'),
     path('notifications/subscribe/', views.notification_subscribe, name='notification_subscribe'),
+    path('articles/<int:pk>/', views.article_detail, name='article_detail'),  # Added article detail URL
     path('<slug:slug>/', views.event_detail, name='event_detail'),
     path('<slug:slug>/<int:year>/', views.edition_detail, name='edition_detail'),
     path('authors/<slug:slug>/', views.author_detail, name='author_detail'),
