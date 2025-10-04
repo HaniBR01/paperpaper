@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # Added for dynamic domain handling
     'paperpaper',  # App principal
 ]
 
@@ -138,6 +139,9 @@ DEFAULT_FROM_EMAIL = 'paperpaperlib@gmail.com'  # Your Gmail address
 LOGIN_URL = '/admin/login/'
 LOGIN_REDIRECT_URL = '/admin/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Sites framework configuration
+SITE_ID = 1
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -237,9 +237,10 @@ def send_article_notifications(article):
         
         print(f"\nPreparing notifications for article: {article.title}")
         
-        # Get the base URL
-        protocol = 'http'  # or 'https' in production
-        domain = 'localhost:8000'  # Update this for production
+        # Get the site domain from Sites framework
+        from django.contrib.sites.models import Site
+        current_site = Site.objects.get_current()
+        protocol = 'https' if not settings.DEBUG else 'http'
         
         # For each author of the article
         for author in article.authors.all():
@@ -253,7 +254,7 @@ def send_article_notifications(article):
             print(f"Found {subscriptions.count()} active subscriptions")
             
             # Generate the article URL
-            article_url = f'{protocol}://{domain}{reverse("article_detail", kwargs={"pk": article.pk})}'
+            article_url = f'{protocol}://{current_site.domain}{reverse("article_detail", kwargs={"pk": article.pk})}'
             
             # Send email to each subscriber
             for subscription in subscriptions:

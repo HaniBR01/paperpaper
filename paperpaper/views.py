@@ -519,9 +519,10 @@ def send_notifications_for_article(article, request=None):
                     article_url = request.build_absolute_uri(article_url)
                 else:
                     # Fallback if request is not available
-                    protocol = 'http'  # or 'https' in production
-                    domain = 'localhost:8000'  # Update this for production
-                    article_url = f'{protocol}://{domain}{article_url}'
+                    from django.contrib.sites.models import Site
+                    current_site = Site.objects.get_current()
+                    protocol = 'https' if not settings.DEBUG else 'http'
+                    article_url = f'{protocol}://{current_site.domain}{article_url}'
                 
                 message = f"""
 Olá {subscription.full_name},
