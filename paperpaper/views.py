@@ -37,18 +37,19 @@ def events_list(request):
 
 def authors_list(request):
     """Lista todos os autores disponíveis"""
-    authors = Author.objects.all().annotate(
-        articles_count=Count('articles')
-    ).order_by('full_name')
-    
+    query = request.GET.get('q', '').strip()
+    authors = Author.objects.all()
+    if query:
+        authors = authors.filter(full_name__icontains=query)
+    authors = authors.annotate(articles_count=Count('articles')).order_by('full_name')
     # Paginação opcional
     paginator = Paginator(authors, 50)  # 50 autores por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
     context = {
         'authors': page_obj,
-        'is_paginated': paginator.num_pages > 1
+        'is_paginated': paginator.num_pages > 1,
+        'query': query
     }
     return render(request, 'paperpaper/authors_list.html', context)
 

@@ -6,6 +6,12 @@
 <div class="row">
     <div class="col-12">
         <h1>Autores</h1>
+        <form method="get" class="mb-3">
+            <div class="input-group">
+                <input type="text" name="q" class="form-control" placeholder="Buscar autor por nome..." value="{{ query }}">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+        </form>
         <p class="lead">Explore todos os autores cadastrados no sistema.</p>
 
         {% if authors %}
