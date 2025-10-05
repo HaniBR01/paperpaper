@@ -58,7 +58,6 @@ Este comando criará:
 ```bash
 python manage.py runserver
 ```
-```
 
 ### 7. Acessar a Aplicação
 
