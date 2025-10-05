@@ -12,10 +12,13 @@ Sistema de gerenciamento de artigos acadêmicos desenvolvido em Django para orga
 | João Pedro Wadge Melo Pacheco | Full Stack |
 
 ## Tecnologias
-- Python
-- Django
-- PostgreSQL
-- GitHub Copilot
+- **Python 3.11** - Linguagem de programação
+- **Django 5.2.5** - Framework web
+- **SQLite** - Banco de dados
+- **Conda** - Gerenciamento de ambiente
+- **Bootstrap 5** - Framework CSS responsivo
+- **bibtexparser** - Parsing de arquivos BibTeX
+- **GitHub Copilot - Clouce Sonnet 3.5** - Assistente de desenvolvimento
 
 ## Documentação
 
@@ -33,5 +36,10 @@ Sistema de gerenciamento de artigos acadêmicos desenvolvido em Django para orga
 ### 📖 Backlog da Sprint
 - **[História 1](docs/historia_1.md)** - Gerenciamento de Eventos
 - **[História 2](docs/historia_2.md)** - Gerenciamento de Edições de Eventos
+- **[História 3](docs/historia_3.md)** - Gerenciamento Manual de Artigos
+- **[História 4](docs/historia_4.md)** - Importação em Massa via BibTeX
 - **[História 5](docs/historia_5.md)** - Busca de Artigos
 - **[História 6](docs/historia_6.md)** - Páginas Públicas de Eventos e Edições
+- **[História 7](docs/historia_7.md)** - Páginas de Autores
+- **[História 8](docs/historia_8.md)** - Sistema de Notificações por Email
+
