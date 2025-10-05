@@ -53,7 +53,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 1: Gerenciamento de Eventos
 **Como administrador, eu gostaria de cadastrar, editar e deletar eventos**
 
-✅ **Status**: Implementado via Django Admin
 - **Views**: Admin interface para modelo `Event`
 - **Funcionalidades**: CRUD completo (Create, Read, Update, Delete)
 - **Validações**: Slug único baseado no acronym
@@ -62,7 +61,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 2: Gerenciamento de Edições de Eventos  
 **Como administrador, eu quero cadastrar (editar, deletar) uma edição de evento**
 
-✅ **Status**: Implementado via Django Admin
 - **Views**: Admin interface para modelo `Edition`
 - **Funcionalidades**: CRUD completo com validações
 - **Constraint**: Unicidade por evento/ano
@@ -71,7 +69,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 3: Gerenciamento Manual de Artigos
 **Como administrador, eu quero cadastrar (editar, deletar) um artigo manualmente, incluindo seu PDF**
 
-✅ **Status**: Implementado via Django Admin
 - **Views**: Admin interface para modelo `Article`
 - **Upload**: Suporte a PDFs organizados por evento/ano
 - **Relacionamentos**: M:N com autores
@@ -80,7 +77,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 4: Importação em Massa via BibTeX
 **Como administrador, eu quero cadastrar artigos em massa, a partir de um arquivo bibtex**
 
-✅ **Status**: Implementado com interface customizada
 - **URL**: `/admin/bibtex-import/`
 - **View**: `bibtex_import` com processamento customizado
 - **Funcionalidades**: 
@@ -93,7 +89,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 5: Busca de Artigos
 **Como usuário, eu quero pesquisar por artigos: por título, por autor e por nome de evento**
 
-✅ **Status**: Implementado
 - **URL**: `/search/`
 - **View**: `search_articles`
 - **Funcionalidades**:
@@ -104,7 +99,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 6: Páginas Públicas de Eventos e Edições
 **Como administrador, eu quero que todo evento tenha uma home page, com suas edições**
 
-✅ **Status**: Implementado
 - **URLs**: `/<slug>/` (evento), `/<slug>/<year>/` (edição)
 - **Views**: `event_detail`, `edition_detail`
 - **Funcionalidades**:
@@ -116,7 +110,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 7: Páginas de Autores
 **Como usuário, eu quero ter uma home page com meus artigos, organizados por ano**
 
-✅ **Status**: Implementado
 - **URL**: `/authors/<slug>/`
 - **View**: `author_detail`
 - **Funcionalidades**:
@@ -127,7 +120,6 @@ O sistema foi implementado como um projeto Django monolítico, centralizando tod
 ### História 8: Sistema de Notificações
 **Como usuário, eu quero me cadastrar para receber um mail sempre que eu tiver um novo artigo**
 
-✅ **Status**: Implementado
 - **URL**: `/notifications/subscribe/`
 - **View**: `notification_subscribe`
 - **Funcionalidades**:
@@ -321,9 +313,11 @@ paperpaper/
 │   ├── historia_1.md                 # Backlog História 1
 │   ├── historia_2.md                 # Backlog História 2
 │   ├── historia_3.md                 # Backlog História 3
+|   ├── historia_4.md                 # Backlog História 4
 │   ├── historia_5.md                 # Backlog História 5
 │   ├── historia_6.md                 # Backlog História 6
 │   ├── historia_7.md                 # Backlog História 7
+|   ├── historia_8.md                 # Backlog História 8
 │   ├── IMPLEMENTACAO.md              # Este arquivo
 │   ├── testes_de_aceitacao.txt       # Especificação dos testes
 │   ├── sequence-diagram.md           # Diagrama de sequência
@@ -358,9 +352,6 @@ paperpaper/
 ├── 📄 db.sqlite3                    # Banco de dados SQLite
 ├── 📄 environment.yml               # Dependências Conda
 ├── 📄 setup_permissions.py          # Script de permissões
-├── 📄 docker-compose.yml            # Docker Compose (opcional)
-├── 📄 Dockerfile                    # Imagem Docker (opcional)
-└── 📄 README.md                     # Documentação principal
 ```
 
 ## Performance e Otimizações
@@ -447,53 +438,3 @@ server {
 }
 ```
 
-### Monitoramento e Backup
-- **Logs**: Configurar logging para debug e auditoria
-- **Backup**: Backup automático do banco de dados
-- **Monitoring**: Ferramentas como Sentry para tracking de erros
-- **Analytics**: Google Analytics ou similar para métricas de uso
-
-## Status de Desenvolvimento
-
-### ✅ Funcionalidades Completadas
-- [x] Todas as 8 histórias implementadas e testadas
-- [x] Interface administrativa completa
-- [x] Sistema de busca funcional
-- [x] Páginas públicas responsivas
-- [x] Sistema de notificações por email
-- [x] Importação BibTeX robusta
-- [x] Upload e organização de PDFs
-- [x] Documentação completa
-
-### 🔄 Melhorias Futuras (Opcional)
-- [ ] Paginação para listas grandes
-- [ ] Sistema de cache (Redis/Memcached)
-- [ ] API REST para integração externa
-- [ ] Sistema de tags para artigos
-- [ ] Busca full-text mais avançada
-- [ ] Dashboard com métricas e gráficos
-- [ ] Sistema de comentários/reviews
-- [ ] Exportação para outros formatos (EndNote, Zotero)
-
-### 🚀 Roadmap de Produção
-1. **Deploy**: Configurar servidor de produção
-2. **SSL**: Certificado HTTPS
-3. **Email**: Configurar SMTP real
-4. **Backup**: Sistema de backup automático
-5. **Monitoring**: Ferramentas de monitoramento
-6. **Performance**: Otimizações baseadas em uso real
-
----
-
-## Equipe de Desenvolvimento
-
-| Nome                            | Papel        | Responsabilidades                    |
-|--------------------------------|--------------|--------------------------------------|
-| Giovanni Russo Paschoal        | Full Stack   | História 1, História 5               |
-| **Haniel Botelho Ribeiro**     | Full Stack   | História 2, História 6               |
-| Heitor Vignati Do Carmo Maciel | Full Stack   | História 3, História 7               |
-| João Pedro Wadge Melo Pacheco  | Full Stack   | História 4, História 8               |
-
-**Data de Finalização**: Outubro 2025  
-**Versão**: 1.0.0  
-**Status**: ✅ Produção Ready
