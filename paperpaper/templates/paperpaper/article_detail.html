@@ -1,0 +1,68 @@
+{% extends 'paperpaper/base.html' %}
+
+{% block title %}{{ article.title }} - PaperPaper{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'events_list' %}">Eventos</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'event_detail' slug=article.edition.event.slug %}">{{ article.edition.event.name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'edition_detail' slug=article.edition.event.slug year=article.edition.year %}">{{ article.edition.year }}</a></li>
+            <li class="breadcrumb-item active">{{ article.title }}</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title mb-4">{{ article.title }}</h1>
+            
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h5>Autores:</h5>
+                    <p class="mb-3">
+                        {% for author in article.authors.all %}
+                            <a href="{% url 'author_detail' slug=author.slug %}" class="text-decoration-none">{{ author.full_name }}</a>{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+
+                    <h5>Evento:</h5>
+                    <p class="mb-3">
+                        <a href="{% url 'event_detail' slug=article.edition.event.slug %}">{{ article.edition.event.name }}</a> 
+                        (<a href="{% url 'edition_detail' slug=article.edition.event.slug year=article.edition.year %}">{{ article.edition.year }}</a>)
+                    </p>
+
+                    {% if article.pages_range %}
+                    <h5>Páginas:</h5>
+                    <p class="mb-3">{{ article.pages_range }}</p>
+                    {% endif %}
+                </div>
+
+                <div class="col-md-4">
+                    {% if article.pdf_file %}
+                    <div class="text-center">
+                        <a href="{{ article.pdf_file.url }}" class="btn btn-primary btn-lg" target="_blank">
+                            <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <h5>Detalhes:</h5>
+                    <dl class="row">
+                        <dt class="col-sm-3">Data de Cadastro:</dt>
+                        <dd class="col-sm-9">{{ article.created_at|date:"d/m/Y H:i" }}</dd>
+
+                        <dt class="col-sm-3">Última Atualização:</dt>
+                        <dd class="col-sm-9">{{ article.updated_at|date:"d/m/Y H:i" }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

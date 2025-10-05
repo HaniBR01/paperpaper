@@ -82,22 +82,34 @@ class ArticleAdmin(admin.ModelAdmin):
     autocomplete_fields = ('edition',)
     filter_horizontal = ('authors',)
     
-    fieldsets = (
-        ('Informações Básicas', {
-            'fields': ('title', 'edition', 'authors')
-        }),
-        ('Paginação e Arquivo', {
-            'fields': ('start_page', 'end_page', 'pdf_file')
-        }),
-        ('Metadados', {
-            'fields': ('bibtex_key', 'slug'),
-            'classes': ('collapse',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
+    def get_fieldsets(self, request, obj=None):
+        # For editing an existing object
+        if obj:
+            return (
+                ('Informações Básicas', {
+                    'fields': ('title', 'edition', 'authors')
+                }),
+                ('Paginação e Arquivo', {
+                    'fields': ('start_page', 'end_page', 'pdf_file')
+                }),
+                ('Metadados', {
+                    'fields': ('bibtex_key', 'slug'),
+                    'classes': ('collapse',)
+                }),
+                ('Timestamps', {
+                    'fields': ('created_at', 'updated_at'),
+                    'classes': ('collapse',)
+                }),
+            )
+        # For adding a new object
+        return (
+            ('Informações Básicas', {
+                'fields': ('title', 'edition', 'authors')
+            }),
+            ('Paginação e Arquivo', {
+                'fields': ('start_page', 'end_page', 'pdf_file')
+            }),
+        )
 
     def get_authors(self, obj):
         return obj.authors_string[:100] + ('...' if len(obj.authors_string) > 100 else '')

@@ -129,67 +129,9 @@ class Article(models.Model):
         return ", ".join(self.authors_list)
     
     def save(self, *args, **kwargs):
-        # Check if this is a new article (no ID means it's new)
-        is_new = not self.pk
-        print(f"\nSaving article: {self.title}")
-        print(f"Is new article: {is_new}")
-        
-        # First save the article
+        if not self.slug:
+            self.slug = slugify(self.title[:100])
         super().save(*args, **kwargs)
-        
-        # Only send notifications for new articles
-        if is_new:
-            print("This is a new article, preparing to send notifications...")
-            try:
-                from django.core.mail import send_mail
-                from django.conf import settings
-                from django.urls import reverse
-                
-                # Get the base URL
-                protocol = 'http'  # or 'https' in production
-                domain = 'localhost:8000'  # Update this for production
-                
-                # For each author of the article
-                for author in self.authors.all():
-                    # Find active subscriptions for this author
-                    subscriptions = NotificationSubscription.objects.filter(
-                        full_name__iexact=author.full_name,
-                        is_active=True
-                    )
-                    
-                    # Generate the article URL
-                    article_url = f'{protocol}://{domain}{reverse("article_detail", kwargs={"pk": self.pk})}'
-                    
-                    # Send email to each subscriber
-                    for subscription in subscriptions:
-                        print(f"Encontrada inscrição para {subscription.full_name} ({subscription.email})")
-                        subject = f'Novo artigo disponível: {self.title}'
-                        message = f"""
-Olá {subscription.full_name},
-
-Um novo artigo seu foi adicionado ao sistema PaperPaper:
-
-Título: {self.title}
-Evento: {self.edition.event.name}
-Ano: {self.edition.year}
-Autores: {self.authors_string}
-
-Você pode visualizar o artigo em: {article_url}
-
-Atenciosamente,
-Equipe PaperPaper
-                        """
-                        
-                        send_mail(
-                            subject,
-                            message,
-                            settings.DEFAULT_FROM_EMAIL,
-                            [subscription.email],
-                            fail_silently=False
-                        )
-            except Exception as e:
-                # Log the error but don't prevent article creation
-                print(f"Error sending notification: {str(e)}")
 
 
 class NotificationSubscription(models.Model):
