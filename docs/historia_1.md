@@ -10,7 +10,7 @@
 
 - Deletar um evento.
 
-## Tarefas e Responsáveis:
+## Tarefas e Responsáveis
 
 ### Modelagem e Admin	
 1. Criar/Refinar o Modelo Event: Garantir que o modelo em paperpaper/models.py tenha os campos nome, sigla, entidade_promotora e slug.
