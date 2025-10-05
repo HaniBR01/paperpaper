@@ -39,7 +39,11 @@
                                 </a>
                                 {% if event.editions.exists %}
                                     <span class="badge bg-success ms-2">
-                                        {{ event.editions.count }} edição{{ event.editions.count|pluralize:"ões" }}
+                                    {% if event.editions.count == 1 %}
+                                        {{ event.editions.count }} edição
+                                    {% else %}
+                                        {{ event.editions.count }} edições
+                                    {% endif %}
                                     </span>
                                 {% endif %}
                                 {% if user.is_staff %}
