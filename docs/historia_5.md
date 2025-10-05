@@ -21,12 +21,13 @@
 
 3. Testes unitários da view: Cobrir buscas por cada tipo, busca sem resultados e comportamento com caracteres especiais.  
 
-[Giovanni]
+    [Giovanni]
 
 ### URLs
 4. Adicionar rota em `paperpaper/urls.py`:
-   - `path('search/', views.search_articles, name='search_articles')`  
-[Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
+   - `path('search/', views.search_articles, name='search_articles')`
+
+    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
 ### Templates / Frontend
 5. Criar `paperpaper/templates/paperpaper/search.html`:  
@@ -38,25 +39,26 @@
      - **Resumo** e metadados relevantes (ano, DOI, páginas);
      - Botão/link de download do PDF quando disponível;
      - Mensagem clara quando nenhum resultado for encontrado.  
-   - Uso de Bootstrap para responsividade e ícones `bi-*` para ações (search, file-earmark-pdf, person, building).  
+   - Uso de Bootstrap para responsividade e ícones `bi-*` para ações (search, file-earmark-pdf, person, building).
+ 
    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
 6. Reutilizar blocos do `base.html` e componentes (alerts para mensagens de sucesso/erro; list group/cards para resultados).  
 
-[Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
+    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
 ### Segurança e Validação
 7. Validação do parâmetro `type`: aceitar apenas os valores permitidos; sanitizar o termo `q` e evitar interpolação direta em consultas.  
    
-[Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
+    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
 8. CSRF: Formulário de busca usa método GET e não precisa de token, garantir que quaisquer ações posteriores (download protegido, etc.) têm proteção adequada.  
 
-[Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
+    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
 ### UX / Feedback
 9. Adicionar feedback visual:
    - Alert ou badge com número de resultados.
    - Indicação de critérios usados na busca (por exemplo, "Busca por título: 'deep learning'").  
 
-[Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
+    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
