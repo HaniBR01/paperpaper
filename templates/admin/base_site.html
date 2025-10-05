@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Remove o modo auto do botão de tema
+    const autoLabel = document.querySelector('.theme-label-when-auto');
+    const autoIcon = document.querySelector('.theme-icon-when-auto');
+    if (autoLabel) autoLabel.remove();
+    if (autoIcon) autoIcon.remove();
+
+    // Força o tema inicial para light se estiver em auto
+    if (localStorage.getItem('theme') === 'auto') {
+        localStorage.setItem('theme', 'light');
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+
+    // Sobrescreve o comportamento padrão do botão
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', function(e) {
+            e.stopPropagation(); // Impede o comportamento padrão
+            e.preventDefault();
+            
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }, true);
+    }
+});
+</script>
+{% endblock %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
