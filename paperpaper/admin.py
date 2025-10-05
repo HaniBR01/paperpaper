@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
-from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.shortcuts import redirect
@@ -12,19 +11,9 @@ from .models import Event, Edition, Article, Author, NotificationSubscription, B
 admin.site.unregister(Site)
 
 
-# Customização do admin de usuários para adicionar grupos
-class UserAdmin(BaseUserAdmin):
-    list_display = BaseUserAdmin.list_display + ('get_groups',)
-    list_filter = BaseUserAdmin.list_filter + ('groups',)
-
-    def get_groups(self, obj):
-        return ', '.join([group.name for group in obj.groups.all()])
-    get_groups.short_description = 'Grupos'
-
-
-# Re-registrar o modelo User com a versão customizada
+# Unregister both Users and Groups to remove Authentication and Authorization section
+admin.site.unregister(Group)
 admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
 
 
 @admin.register(Event)

@@ -36,67 +36,20 @@ def events_list(request):
     }
     return render(request, 'paperpaper/events_list.html', context)
 
-@staff_member_required
 def event_create(request):
     """Criar novo evento"""
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        acronym = request.POST.get('acronym')
-        promoting_entity = request.POST.get('promoting_entity')
-        
-        if name and acronym and promoting_entity:
-            event = Event.objects.create(
-                name=name,
-                acronym=acronym,
-                promoting_entity=promoting_entity
-            )
-            messages.success(request, 'Evento criado com sucesso!')
-            return redirect(event.get_absolute_url())
-        else:
-            messages.error(request, 'Por favor, preencha todos os campos.')
-    
-    return render(request, 'paperpaper/event_form.html')
+    messages.error(request, 'Operação não permitida.')
+    return redirect('events_list')
 
-@staff_member_required
 def event_edit(request, slug):
     """Editar evento existente"""
-    event = get_object_or_404(Event, slug=slug)
-    
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        acronym = request.POST.get('acronym')
-        promoting_entity = request.POST.get('promoting_entity')
-        
-        if name and acronym and promoting_entity:
-            event.name = name
-            event.acronym = acronym
-            event.promoting_entity = promoting_entity
-            event.save()
-            messages.success(request, 'Evento atualizado com sucesso!')
-            return redirect(event.get_absolute_url())
-        else:
-            messages.error(request, 'Por favor, preencha todos os campos.')
-    
-    context = {
-        'event': event,
-        'is_edit': True
-    }
-    return render(request, 'paperpaper/event_form.html', context)
+    messages.error(request, 'Operação não permitida.')
+    return redirect('events_list')
 
-@staff_member_required
 def event_delete(request, slug):
     """Deletar evento existente"""
-    event = get_object_or_404(Event, slug=slug)
-    
-    if request.method == 'POST':
-        event.delete()
-        messages.success(request, 'Evento removido com sucesso!')
-        return redirect('events_list')
-    
-    context = {
-        'event': event
-    }
-    return render(request, 'paperpaper/event_confirm_delete.html', context)
+    messages.error(request, 'Operação não permitida.')
+    return redirect('events_list')
 
 
 def authors_list(request):
@@ -341,7 +294,7 @@ def handle_bibtex_upload(request):
         if failed_imports > 0:
             messages.warning(
                 request,
-                f'Importação concluída: {successful_imports} sucessos, {failed_imports} falhas. '
+                f'Importação concluída: {successful_imports} artigos importados, {failed_imports} falhas. '
                 f'<a class="alert-link" href="{admin_url}">Ver relatório detalhado</a><br><br>'
                 f'{failed_imports} entrada(s) foram puladas. '
                 f'Verifique o relatório detalhado para mais informações.',
@@ -350,7 +303,7 @@ def handle_bibtex_upload(request):
         else:
             messages.success(
                 request,
-                f'Importação concluída: {successful_imports} sucessos, {failed_imports} falhas. '
+                f'Importação concluída: {successful_imports} artigos importados com sucesso. '
                 f'<a class="alert-link" href="{admin_url}">Ver relatório detalhado</a>',
                 extra_tags='safe success'
             )
@@ -458,16 +411,16 @@ def process_bibtex_entry(entry, pdf_files, request=None):
             bibtex_key=entry.get('ID', '')
         )
         
-        print(f"\nCreated article: {article.title}")
+        print(f"\nArtigo criado: {article.title}")
         
         # Adicionar autores ao artigo
         article.authors.set(authors)
-        print(f"Added authors: {[a.full_name for a in authors]}")
+        print(f"Autores adicionados: {[a.full_name for a in authors]}")
         
         # Adicionar PDF se disponível
         bibtex_key = entry.get('ID', '')
         
-        print("About to send notifications...")
+        print("Preparando para enviar notificações...")
         if bibtex_key in pdf_files:
             # Salvar PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
@@ -484,9 +437,9 @@ def process_bibtex_entry(entry, pdf_files, request=None):
             os.unlink(temp_file_path)
         
         # Enviar notificações
-        print("Calling send_notifications_for_article...")
+        print("Chamando envio de notificações...")
         send_notifications_for_article(article, request)
-        print("Notifications processing completed")
+        print("Processamento de notificações concluído")
         
         return {'success': True}
         
@@ -499,16 +452,16 @@ def send_notifications_for_article(article, request=None):
     from django.contrib.sites.shortcuts import get_current_site
     from django.urls import reverse
 
-    print(f"\nProcessing notifications for article: {article.title}")
+    print(f"\nProcessando notificações para o artigo: {article.title}")
     for author in article.authors.all():
-        print(f"Checking subscriptions for author: {author.full_name}")
+        print(f"Verificando inscrições para o autor: {author.full_name}")
         # Buscar inscrições ativas para este autor
         subscriptions = NotificationSubscription.objects.filter(
             full_name__iexact=author.full_name,
             is_active=True
         )
         
-        print(f"Found {subscriptions.count()} active subscriptions for {author.full_name}")
+        print(f"Encontradas {subscriptions.count()} inscrições ativas para {author.full_name}")
         for subscription in subscriptions:
             try:
                 subject = f'Novo artigo disponível: {article.title}'
@@ -540,14 +493,14 @@ Atenciosamente,
 Equipe PaperPaper
                 """
                 
-                print(f"Attempting to send email to: {subscription.email}")
+                print(f"Tentando enviar email para: {subscription.email}")
                 send_mail(
                     subject,
                     message,
                     settings.DEFAULT_FROM_EMAIL,
                     [subscription.email],
-                    fail_silently=False  # Changed to False to see errors
+                    fail_silently=False  # Alterado para False para ver erros
                 )
-                print("Email sent successfully!")
+                print("Email enviado com sucesso!")
             except Exception as e:
-                print(f"Failed to send email: {str(e)}")  # Now logging the error
+                print(f"Falha ao enviar email: {str(e)}")  # Registrando o erro

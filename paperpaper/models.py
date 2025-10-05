@@ -13,8 +13,8 @@ class Event(models.Model):
     acronym = models.CharField(max_length=20, unique=True, verbose_name="Sigla")
     promoting_entity = models.CharField(max_length=200, verbose_name="Entidade Promotora")
     slug = models.SlugField(unique=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
         verbose_name = "Evento"
@@ -38,8 +38,8 @@ class Edition(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='editions')
     year = models.PositiveIntegerField(verbose_name="Ano")
     location = models.CharField(max_length=200, verbose_name="Local")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
         verbose_name = "Edição"
@@ -58,7 +58,7 @@ class Author(models.Model):
     """Modelo para autores de artigos"""
     full_name = models.CharField(max_length=200, verbose_name="Nome Completo")
     slug = models.SlugField(unique=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
 
     class Meta:
         verbose_name = "Autor"
@@ -92,8 +92,8 @@ class Article(models.Model):
     pdf_file = models.FileField(upload_to=article_pdf_upload_path, verbose_name="Arquivo PDF", null=True, blank=True)
     bibtex_key = models.CharField(max_length=100, verbose_name="Chave BibTeX", blank=True)
     slug = models.SlugField(max_length=600, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Atualizado em")
 
     class Meta:
         verbose_name = "Artigo"
@@ -162,7 +162,7 @@ class Article(models.Model):
                     
                     # Send email to each subscriber
                     for subscription in subscriptions:
-                        print(f"Found subscription for {subscription.full_name} ({subscription.email})")
+                        print(f"Encontrada inscrição para {subscription.full_name} ({subscription.email})")
                         subject = f'Novo artigo disponível: {self.title}'
                         message = f"""
 Olá {subscription.full_name},
@@ -197,7 +197,7 @@ class NotificationSubscription(models.Model):
     full_name = models.CharField(max_length=200, verbose_name="Nome Completo")
     email = models.EmailField(verbose_name="Email")
     is_active = models.BooleanField(default=True, verbose_name="Ativo")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
 
     class Meta:
         verbose_name = "Inscrição de Notificação"
@@ -210,14 +210,14 @@ class NotificationSubscription(models.Model):
 
 class BibtexImport(models.Model):
     """Modelo para rastrear importações de BibTeX"""
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    bibtex_file = models.FileField(upload_to='imports/bibtex/')
-    zip_file = models.FileField(upload_to='imports/pdfs/', null=True, blank=True)
-    total_entries = models.PositiveIntegerField(default=0)
-    successful_imports = models.PositiveIntegerField(default=0)
-    failed_imports = models.PositiveIntegerField(default=0)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Enviado por")
+    bibtex_file = models.FileField(upload_to='imports/bibtex/', verbose_name="Arquivo BibTeX")
+    zip_file = models.FileField(upload_to='imports/pdfs/', null=True, blank=True, verbose_name="Arquivo ZIP")
+    total_entries = models.PositiveIntegerField(default=0, verbose_name="Total de entradas")
+    successful_imports = models.PositiveIntegerField(default=0, verbose_name="Importações bem-sucedidas")
+    failed_imports = models.PositiveIntegerField(default=0, verbose_name="Importações falhas")
     import_log = models.TextField(blank=True, verbose_name="Log de Importação")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Criado em")
 
     class Meta:
         verbose_name = "Importação BibTeX"
@@ -235,7 +235,7 @@ def send_article_notifications(article):
         from django.conf import settings
         from django.urls import reverse
         
-        print(f"\nPreparing notifications for article: {article.title}")
+        print(f"\nPreparando notificações para o artigo: {article.title}")
         
         # Get the site domain from Sites framework
         from django.contrib.sites.models import Site
@@ -244,21 +244,21 @@ def send_article_notifications(article):
         
         # For each author of the article
         for author in article.authors.all():
-            print(f"Checking notifications for author: {author.full_name}")
+            print(f"Verificando notificações para o autor: {author.full_name}")
             # Find active subscriptions for this author
             subscriptions = NotificationSubscription.objects.filter(
                 full_name__iexact=author.full_name,
                 is_active=True
             )
             
-            print(f"Found {subscriptions.count()} active subscriptions")
+            print(f"Encontradas {subscriptions.count()} inscrições ativas")
             
             # Generate the article URL
             article_url = f'{protocol}://{current_site.domain}{reverse("article_detail", kwargs={"pk": article.pk})}'
             
             # Send email to each subscriber
             for subscription in subscriptions:
-                print(f"Sending email to {subscription.email}")
+                print(f"Enviando email para {subscription.email}")
                 subject = f'Novo artigo disponível: {article.title}'
                 message = f"""
 Olá {subscription.full_name},
@@ -283,15 +283,15 @@ Equipe PaperPaper
                     [subscription.email],
                     fail_silently=False
                 )
-                print(f"Email sent successfully to {subscription.email}")
+                print(f"Email enviado com sucesso para {subscription.email}")
     except Exception as e:
-        print(f"Error sending notification: {str(e)}")
+        print(f"Erro ao enviar notificação: {str(e)}")
 
 
 @receiver(m2m_changed, sender=Article.authors.through)
 def handle_article_authors_changed(sender, instance, action, **kwargs):
-    """Handler for when authors are added to an article"""
-    print(f"\nAuthors m2m changed: {action}")
+    """Handler para quando autores são adicionados a um artigo"""
+    print(f"\nAutores m2m alterados: {action}")
     if action == "post_add":
-        print("Authors were added, sending notifications...")
+        print("Autores foram adicionados, enviando notificações...")
         send_article_notifications(instance)
