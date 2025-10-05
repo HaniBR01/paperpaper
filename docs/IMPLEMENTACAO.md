@@ -1,143 +1,499 @@
 # PaperPaper - Sistema de Gerenciamento de Artigos Acadêmicos
 
+## Visão Geral
+
+O PaperPaper é um sistema web desenvolvido em Django para gerenciamento e catalogação de artigos acadêmicos de eventos científicos. O sistema permite organizar eventos, edições, artigos e autores, oferecendo funcionalidades tanto para administradores quanto para usuários finais.
+
 ## Resumo da Implementação
 
-O sistema PaperPaper foi implementado como um projeto Django único, organizando todas as funcionalidades no app principal. A arquitetura segue os requisitos dos testes de aceitação, oferecendo uma divisão clara entre usuários administradores e usuários comuns.
+O sistema foi implementado como um projeto Django monolítico, centralizando todas as funcionalidades no app principal `paperpaper`. A arquitetura segue os padrões MVT (Model-View-Template) do Django e atende completamente aos 8 testes de aceitação especificados.
 
-## Estrutura Implementada
+## Arquitetura do Sistema
 
-### Modelos de Dados
-- **Event**: Eventos acadêmicos (SBES, SBCARS, etc.)
-- **Edition**: Edições específicas dos eventos (SBES 2024, etc.)
-- **Article**: Artigos acadêmicos com autores, páginas e PDFs
-- **Author**: Autores dos artigos
-- **NotificationSubscription**: Inscrições para notificações por email
-- **BibtexImport**: Controle de importações via BibTeX
+### Estrutura de Modelos (Models)
 
-### Sistema de Usuários e Permissões
-- **Superusuário/Staff**: Acesso total ao Django Admin
-- **Grupo Administradores**: CRUD completo de todos os modelos
-- **Grupo Usuários**: Apenas visualização de conteúdo público
-- **Usuários anônimos**: Acesso às páginas públicas
+#### Core Models
+- **`Event`**: Eventos acadêmicos (SBES, SBCARS, etc.)
+  - Campos: `name`, `acronym`, `promoting_entity`, `slug`
+  - Relacionamento: 1:N com Edition
+  
+- **`Edition`**: Edições específicas dos eventos
+  - Campos: `event` (FK), `year`, `location`
+  - Constraint: Unicidade por evento/ano
+  
+- **`Article`**: Artigos acadêmicos
+  - Campos: `title`, `edition` (FK), `start_page`, `end_page`, `pdf_file`, `bibtex_key`, `slug`
+  - Relacionamento: M:N com Author
+  
+- **`Author`**: Autores dos artigos
+  - Campos: `full_name`, `slug`
+  - Relacionamento: M:N com Article
 
-### Funcionalidades por Tipo de Usuário
+#### Supporting Models
+- **`NotificationSubscription`**: Inscrições para notificações por email
+  - Campos: `full_name`, `email`, `is_active`
+  
+- **`BibtexImport`**: Controle de importações via BibTeX
+  - Campos: `uploaded_by` (FK User), `bibtex_file`, `zip_file`, `total_entries`, `successful_imports`, `failed_imports`, `import_log`
 
-#### ADMINISTRADORES (Testes 1-4)
-✅ **Teste 1**: Cadastrar/editar/deletar eventos via Django Admin
-✅ **Teste 2**: Cadastrar/editar/deletar edições via Django Admin  
-✅ **Teste 3**: Cadastrar artigos manualmente via Django Admin (com upload de PDF)
-✅ **Teste 4**: Importar artigos em massa via BibTeX + ZIP (interface customizada)
+### Sistema de Permissões
 
-#### USUÁRIOS (Testes 5-8)
-✅ **Teste 5**: Sistema de busca por título, autor e evento (`/search/`)
-✅ **Teste 6**: Páginas públicas de eventos e edições (`/sbes/`, `/sbes/2024/`)
-✅ **Teste 7**: Páginas de autores organizadas por ano (`/authors/marco-tulio-valente/`)
-✅ **Teste 8**: Sistema de notificações por email (`/notifications/subscribe/`)
+#### Níveis de Acesso
+- **Superusuário/Staff**: Acesso completo ao Django Admin e funcionalidades administrativas
+- **Usuários Autenticados**: Acesso às páginas públicas (mesmo que anônimos)
+- **Usuários Anônimos**: Acesso completo às páginas públicas (busca, eventos, autores)
 
-## URLs Implementadas
+#### Proteção de Rotas
+- Rotas administrativas protegidas com `@staff_member_required`
+- Páginas públicas acessíveis sem autenticação
+- Django Admin restrito a usuários staff
 
+## Histórias Implementadas
+
+### História 1: Gerenciamento de Eventos
+**Como administrador, eu gostaria de cadastrar, editar e deletar eventos**
+
+✅ **Status**: Implementado via Django Admin
+- **Views**: Admin interface para modelo `Event`
+- **Funcionalidades**: CRUD completo (Create, Read, Update, Delete)
+- **Validações**: Slug único baseado no acronym
+- **Campos**: Nome, sigla, entidade promotora
+
+### História 2: Gerenciamento de Edições de Eventos  
+**Como administrador, eu quero cadastrar (editar, deletar) uma edição de evento**
+
+✅ **Status**: Implementado via Django Admin
+- **Views**: Admin interface para modelo `Edition`
+- **Funcionalidades**: CRUD completo com validações
+- **Constraint**: Unicidade por evento/ano
+- **Campos**: Evento (FK), ano, local
+
+### História 3: Gerenciamento Manual de Artigos
+**Como administrador, eu quero cadastrar (editar, deletar) um artigo manualmente, incluindo seu PDF**
+
+✅ **Status**: Implementado via Django Admin
+- **Views**: Admin interface para modelo `Article`
+- **Upload**: Suporte a PDFs organizados por evento/ano
+- **Relacionamentos**: M:N com autores
+- **Campos**: Título, autores, edição, páginas, PDF
+
+### História 4: Importação em Massa via BibTeX
+**Como administrador, eu quero cadastrar artigos em massa, a partir de um arquivo bibtex**
+
+✅ **Status**: Implementado com interface customizada
+- **URL**: `/admin/bibtex-import/`
+- **View**: `bibtex_import` com processamento customizado
+- **Funcionalidades**: 
+  - Upload de arquivo BibTeX + ZIP com PDFs
+  - Validação de campos obrigatórios
+  - Criação automática de eventos/edições
+  - Relatório detalhado de importação
+  - Notificações automáticas por email
+
+### História 5: Busca de Artigos
+**Como usuário, eu quero pesquisar por artigos: por título, por autor e por nome de evento**
+
+✅ **Status**: Implementado
+- **URL**: `/search/`
+- **View**: `search_articles`
+- **Funcionalidades**:
+  - Busca por título, autor ou evento
+  - Resultados com links para detalhes
+  - Interface simples com formulário GET
+
+### História 6: Páginas Públicas de Eventos e Edições
+**Como administrador, eu quero que todo evento tenha uma home page, com suas edições**
+
+✅ **Status**: Implementado
+- **URLs**: `/<slug>/` (evento), `/<slug>/<year>/` (edição)
+- **Views**: `event_detail`, `edition_detail`
+- **Funcionalidades**:
+  - Página do evento com lista de edições
+  - Página da edição com lista de artigos
+  - Navegação breadcrumb
+  - Links para autores e PDFs
+
+### História 7: Páginas de Autores
+**Como usuário, eu quero ter uma home page com meus artigos, organizados por ano**
+
+✅ **Status**: Implementado
+- **URL**: `/authors/<slug>/`
+- **View**: `author_detail`
+- **Funcionalidades**:
+  - Lista de artigos organizados por ano
+  - Ordenação cronológica decrescente
+  - Links para artigos e eventos
+
+### História 8: Sistema de Notificações
+**Como usuário, eu quero me cadastrar para receber um mail sempre que eu tiver um novo artigo**
+
+✅ **Status**: Implementado
+- **URL**: `/notifications/subscribe/`
+- **View**: `notification_subscribe`
+- **Funcionalidades**:
+  - Cadastro por nome e email
+  - Envio automático via signals do Django
+  - Busca exata por nome do autor
+  - Emails com dados completos do artigo
+
+## Estrutura de URLs
+
+### URLs Públicas
+```python
+/                              # Página inicial com estatísticas gerais
+/search/                       # Sistema de busca de artigos
+/events/                       # Lista de todos os eventos
+/authors/                      # Lista de todos os autores
+/notifications/subscribe/      # Cadastro para notificações
+/articles/<int:pk>/           # Detalhes de um artigo específico
+/<slug>/                      # Página do evento (ex: /sbes/)
+/<slug>/<int:year>/           # Página da edição (ex: /sbes/2024/)
+/authors/<slug>/              # Página do autor (ex: /authors/marco-tulio-valente/)
 ```
-/                           - Página inicial com estatísticas
-/search/                    - Sistema de busca
-/notifications/subscribe/   - Cadastro para notificações
-/admin/                     - Django Admin (staff only)
-/admin/bibtex-import/      - Importação BibTeX (staff only)
-/<sigla>/                  - Página do evento (ex: /sbes/)
-/<sigla>/<ano>/            - Página da edição (ex: /sbes/2024/)
-/authors/<slug>/           - Página do autor
+
+### URLs Administrativas
+```python
+/admin/                       # Django Admin principal
+/login/                       # Login administrativo
+/admin/logout/               # Logout administrativo
+/bibtex-import/              # Interface de importação BibTeX
+/admin/bibtex-import/        # Redirecionamento para admin de importações
 ```
 
-## Características Técnicas
+### Padrões de URL
+- **Slugs**: URLs amigáveis baseadas em slugs (sbes, marco-tulio-valente)
+- **Hierarquia**: Evento → Edição → Artigo
+- **REST-like**: Recursos identificáveis por URLs únicas
 
-### Upload e Organização de PDFs
-- PDFs organizados por evento/ano: `media/articles/sbes/2024/`
-- Upload individual via admin ou em massa via ZIP
+## Funcionalidades Técnicas
 
-### Sistema de Busca
-- Busca por título, autor ou evento
-- Resultados com links para páginas específicas
-- Interface simples e intuitiva
+### Sistema de Upload e Organização de PDFs
+- **Estrutura**: `media/articles/<evento-slug>/<ano>/<arquivo>.pdf`
+- **Upload Individual**: Via Django Admin com interface de arquivo
+- **Upload em Massa**: Via ZIP na importação BibTeX
+- **Validação**: Verificação de formato e tamanho de arquivo
 
-### Importação BibTeX
-- Validação de campos obrigatórios (title, author, booktitle, year)
-- Criação automática de eventos/edições se não existirem
-- Processamento de autores múltiplos
-- Relatório detalhado de sucessos/falhas
-- Notificações automáticas por email
+### Sistema de Busca Avançado
+- **Tipos de Busca**: Título, autor, nome do evento
+- **Algoritmo**: Busca case-insensitive com `icontains`
+- **Performance**: Queries otimizadas com `select_related` e `prefetch_related`
+- **Interface**: Formulário simples com dropdown de tipo de busca
 
-### Sistema de Notificações
-- Cadastro por nome e email
-- Envio automático quando artigos são adicionados
-- Busca exata por nome do autor
+### Importação BibTeX Robusta
+- **Validação Rigorosa**: Campos obrigatórios (title, author, booktitle, year)
+- **Auto-criação**: Eventos e edições criados automaticamente se não existirem
+- **Processamento de Autores**: Suporte a múltiplos autores com parsing inteligente
+- **Relatório Detalhado**: Log completo de sucessos, falhas e motivos
+- **Integração com PDFs**: Matching automático de PDFs do ZIP via chave BibTeX
 
-### Interface Administrativa
-- Django Admin customizado com filtros e buscas
-- Visualização hierárquica (eventos → edições → artigos)
-- Contadores e estatísticas
-- Interface para importação BibTeX
+### Sistema de Notificações Inteligente
+- **Trigger**: Django signals (`m2m_changed`) para detectar novos artigos
+- **Matching**: Busca exata case-insensitive por nome do autor
+- **Email**: Templates HTML com dados completos do artigo
+- **Performance**: Processamento assíncrono para não bloquear interface
 
-## Como Usar
+### Interface Administrativa Avançada
+- **Django Admin Customizado**: Filtros, buscas e autocomplete
+- **Hierarquia Visual**: Inline editing de edições e artigos
+- **Contadores**: Estatísticas em tempo real
+- **Bulk Actions**: Ações em massa para múltiplos registros
 
-### 1. Iniciar o Sistema
+### Tecnologias e Stack
+
+### Backend
+- **Django 5.2.5**: Framework web principal
+- **Python 3.11**: Linguagem de programação
+- **SQLite**: Banco de dados (desenvolvimento)
+- **bibtexparser 1.4.1**: Parsing de arquivos BibTeX
+- **Django Admin**: Interface administrativa
+
+### Frontend
+- **Bootstrap 5**: Framework CSS responsivo
+- **HTML/CSS/JavaScript**: Tecnologias web padrão
+- **Django Templates**: Sistema de templates nativo
+- **Icons**: Bootstrap Icons para interface
+
+### Infraestrutura
+- **Conda**: Gerenciamento de ambiente e dependências
+- **Git**: Controle de versão
+- **Email Backend**: Configurável (console/SMTP)
+
+## Guia de Uso
+
+### 1. Configuração Inicial
+
+#### Usando Conda (Recomendado)
 ```bash
-docker-compose up
+# Clonar repositório
+git clone https://github.com/HaniBR01/paperpaper.git
+cd paperpaper
+
+# Criar ambiente conda
+conda env create -f environment.yml
+
+# Ativar ambiente
+conda activate paperpaper
+
+# Configurar banco de dados
+python manage.py migrate
+
+# Criar superusuário
+python manage.py createsuperuser
+
+# Iniciar servidor
+python manage.py runserver
 ```
 
-### 2. Acessar o Sistema
-- **Página inicial**: http://localhost:8000/
-- **Admin**: http://localhost:8000/admin/ (usuário: admin)
 
-### 3. Configurar Permissões
+
+### 2. Configuração de Permissões
 ```bash
-docker-compose run --rm web python manage.py shell < setup_permissions.py
+# Executar script de permissões (se necessário)
+python manage.py shell < setup_permissions.py
 ```
 
-### 4. Cadastrar Dados
-1. Acesse o admin Django
-2. Crie eventos (SBES, SBCARS)
-3. Crie edições (SBES 2024, etc.)
-4. Cadastre artigos manualmente ou use importação BibTeX
+### 3. Acesso ao Sistema
+- **Página Principal**: http://localhost:8000/
+- **Admin Django**: http://localhost:8000/admin/
+- **Importação BibTeX**: http://localhost:8000/bibtex-import/
 
-### 5. Testar Funcionalidades
-- Use a busca para encontrar artigos
-- Navegue pelas páginas públicas
-- Cadastre-se para notificações
-- Teste a importação BibTeX com o arquivo fornecido
+### 4. Fluxo de Trabalho Típico
 
-## Estrutura de Arquivos
+#### Para Administradores:
+1. Acesse o Django Admin
+2. Crie eventos (SBES, SBCARS, etc.)
+3. Crie edições dos eventos (SBES 2024, etc.)
+4. Cadastre artigos:
+   - **Manualmente**: Via admin Django
+   - **Em Massa**: Via importação BibTeX
+
+#### Para Usuários:
+1. Use a busca para encontrar artigos
+2. Navegue pelas páginas de eventos e edições
+3. Acesse páginas de autores
+4. Cadastre-se para receber notificações
+
+### Dependências do Projeto
+
+O projeto utiliza **Conda** para gerenciamento de ambiente e dependências através do arquivo `environment.yml`:
+
+```yaml
+name: paperpaper
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - django=5.2.5
+  - sqlite
+  - pip
+  - pip:
+    - asgiref==3.9.1
+    - sqlparse==0.5.3
+    - tzdata==2025.2
+    - bibtexparser==1.4.1
+```
+
+### 5. Importação BibTeX - Exemplo
+
+```bibtex
+@inproceedings{exemplo2024,
+    author = {João Silva and Maria Santos},
+    title = {Uma Abordagem Inovadora para Engenharia de Software},
+    booktitle = {Anais do XXXVIII Simpósio Brasileiro de Engenharia de Software},
+    year = {2024},
+    pages = {1--10},
+    location = {Curitiba/PR}
+}
+```
+
+1. Prepare arquivo `.bib` com entradas válidas
+2. (Opcional) Prepare ZIP com PDFs nomeados pela chave BibTeX
+3. Acesse `/bibtex-import/`
+4. Faça upload dos arquivos
+5. Aguarde processamento e verifique relatório
+
+## Estrutura de Diretórios
 
 ```
 paperpaper/
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── manage.py
-├── setup_permissions.py
-├── paperpaper/
-│   ├── settings.py
-│   ├── urls.py
-│   ├── models.py
-│   ├── admin.py
-│   ├── views.py
-│   └── migrations/
-└── templates/paperpaper/
-    ├── base.html
-    ├── home.html
-    ├── search.html
-    ├── event_detail.html
-    ├── edition_detail.html
-    ├── author_detail.html
-    ├── notification_subscribe.html
-    └── bibtex_import.html
+├── 📁 docs/                          # Documentação
+│   ├── historia_1.md                 # Backlog História 1
+│   ├── historia_2.md                 # Backlog História 2
+│   ├── historia_3.md                 # Backlog História 3
+│   ├── historia_5.md                 # Backlog História 5
+│   ├── historia_6.md                 # Backlog História 6
+│   ├── historia_7.md                 # Backlog História 7
+│   ├── IMPLEMENTACAO.md              # Este arquivo
+│   ├── testes_de_aceitacao.txt       # Especificação dos testes
+│   ├── sequence-diagram.md           # Diagrama de sequência
+│   └── package-diagram.md            # Diagrama de pacotes
+├── 📁 media/                         # Arquivos de mídia
+│   ├── articles/                     # PDFs dos artigos
+│   │   ├── sbes/2024/               # Organizados por evento/ano
+│   │   └── sbcars/2023/
+│   └── imports/                      # Arquivos de importação
+│       ├── bibtex/                   # Arquivos BibTeX
+│       └── pdfs/                     # ZIPs temporários
+├── 📁 paperpaper/                    # App principal Django
+│   ├── __init__.py
+│   ├── admin.py                      # Configuração do Django Admin
+│   ├── asgi.py                      # Configuração ASGI
+│   ├── models.py                     # Modelos de dados
+│   ├── settings.py                   # Configurações Django
+│   ├── urls.py                      # Roteamento de URLs
+│   ├── views.py                     # Views/Controllers
+│   ├── wsgi.py                      # Configuração WSGI
+│   ├── migrations/                   # Migrações do banco
+│   └── templates/paperpaper/         # Templates HTML
+│       ├── base.html                # Template base
+│       ├── home.html                # Página inicial
+│       ├── search.html              # Sistema de busca
+│       ├── event_detail.html        # Página do evento
+│       ├── edition_detail.html      # Página da edição
+│       ├── author_detail.html       # Página do autor
+│       ├── bibtex_import.html       # Importação BibTeX
+│       └── notification_subscribe.html # Notificações
+├── 📄 manage.py                     # Django management
+├── 📄 db.sqlite3                    # Banco de dados SQLite
+├── 📄 environment.yml               # Dependências Conda
+├── 📄 setup_permissions.py          # Script de permissões
+├── 📄 docker-compose.yml            # Docker Compose (opcional)
+├── 📄 Dockerfile                    # Imagem Docker (opcional)
+└── 📄 README.md                     # Documentação principal
 ```
 
-## Próximos Passos
+## Performance e Otimizações
 
-O sistema está completo e atende todos os testes de aceitação. Para produção, recomenda-se:
+### Otimizações de Banco de Dados
+- **Select Related**: Redução de queries para ForeignKeys
+- **Prefetch Related**: Otimização de relacionamentos M:N
+- **Database Indexes**: Campos frequentemente pesquisados
+- **Unique Constraints**: Garantia de integridade dos dados
 
-1. Configurar email real (SMTP)
-2. Adicionar paginação nas listas
-3. Implementar sistema de cache
-4. Configurar servidor web (nginx + gunicorn)
-5. Configurar backup do banco de dados
-6. Adicionar logs e monitoramento
+### Otimizações de Interface
+- **Bootstrap CDN**: Carregamento rápido de estilos
+- **Lazy Loading**: Imagens carregadas sob demanda
+- **Paginação**: Implementável para listas grandes
+- **Caching**: Preparado para cache de queries frequentes
+
+### Tratamento de Erros
+- **404 Handlers**: Páginas personalizadas para recursos não encontrados
+- **Form Validation**: Validação client-side e server-side
+- **File Upload**: Validação de tipos e tamanhos de arquivo
+- **Error Logging**: Sistema de logs configurável
+
+## Considerações de Produção
+
+### Segurança
+- **CSRF Protection**: Habilitado por padrão no Django
+- **SQL Injection**: Prevenido pelo Django ORM
+- **XSS Protection**: Templates com escape automático
+- **File Upload**: Validação de tipos de arquivo
+- **Admin Access**: Restrito a usuários staff
+
+### Configurações Recomendadas para Produção
+
+#### settings.py
+```python
+DEBUG = False
+ALLOWED_HOSTS = ['seu-dominio.com']
+
+# Configuração de email real
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'seu-email@gmail.com'
+EMAIL_HOST_PASSWORD = 'sua-senha-app'
+
+# Configuração de banco para produção
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'paperpaper_prod',
+        'USER': 'paperpaper_user',
+        'PASSWORD': 'senha_segura',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+
+# Configuração de arquivos estáticos
+STATIC_ROOT = '/var/www/paperpaper/static/'
+MEDIA_ROOT = '/var/www/paperpaper/media/'
+```
+
+#### Servidor Web
+```nginx
+# nginx.conf
+server {
+    listen 80;
+    server_name seu-dominio.com;
+    
+    location /static/ {
+        alias /var/www/paperpaper/static/;
+    }
+    
+    location /media/ {
+        alias /var/www/paperpaper/media/;
+    }
+    
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+### Monitoramento e Backup
+- **Logs**: Configurar logging para debug e auditoria
+- **Backup**: Backup automático do banco de dados
+- **Monitoring**: Ferramentas como Sentry para tracking de erros
+- **Analytics**: Google Analytics ou similar para métricas de uso
+
+## Status de Desenvolvimento
+
+### ✅ Funcionalidades Completadas
+- [x] Todas as 8 histórias implementadas e testadas
+- [x] Interface administrativa completa
+- [x] Sistema de busca funcional
+- [x] Páginas públicas responsivas
+- [x] Sistema de notificações por email
+- [x] Importação BibTeX robusta
+- [x] Upload e organização de PDFs
+- [x] Documentação completa
+
+### 🔄 Melhorias Futuras (Opcional)
+- [ ] Paginação para listas grandes
+- [ ] Sistema de cache (Redis/Memcached)
+- [ ] API REST para integração externa
+- [ ] Sistema de tags para artigos
+- [ ] Busca full-text mais avançada
+- [ ] Dashboard com métricas e gráficos
+- [ ] Sistema de comentários/reviews
+- [ ] Exportação para outros formatos (EndNote, Zotero)
+
+### 🚀 Roadmap de Produção
+1. **Deploy**: Configurar servidor de produção
+2. **SSL**: Certificado HTTPS
+3. **Email**: Configurar SMTP real
+4. **Backup**: Sistema de backup automático
+5. **Monitoring**: Ferramentas de monitoramento
+6. **Performance**: Otimizações baseadas em uso real
+
+---
+
+## Equipe de Desenvolvimento
+
+| Nome                            | Papel        | Responsabilidades                    |
+|--------------------------------|--------------|--------------------------------------|
+| Giovanni Russo Paschoal        | Full Stack   | História 1, História 5               |
+| **Haniel Botelho Ribeiro**     | Full Stack   | História 2, História 6               |
+| Heitor Vignati Do Carmo Maciel | Full Stack   | História 3, História 7               |
+| João Pedro Wadge Melo Pacheco  | Full Stack   | História 4, História 8               |
+
+**Data de Finalização**: Outubro 2025  
+**Versão**: 1.0.0  
+**Status**: ✅ Produção Ready
