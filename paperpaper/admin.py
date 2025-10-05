@@ -5,7 +5,11 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.shortcuts import redirect
 from django.db.models import Count
+from django.contrib.sites.models import Site
 from .models import Event, Edition, Article, Author, NotificationSubscription, BibtexImport
+
+# Unregister Sites from admin interface while keeping functionality
+admin.site.unregister(Site)
 
 
 # Customização do admin de usuários para adicionar grupos
