@@ -26,8 +26,11 @@
 
     [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
-4. Criar a View event_edit: Implementar a view para carregar e atualizar eventos existentes (CRUD: Update).	[Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
-Backend/Views	5. Criar a View event_delete: Implementar a view de confirmação e a lógica de remoção de eventos (CRUD: Delete).	
+4. Criar a View event_edit: Implementar a view para carregar e atualizar eventos existentes (CRUD: Update).
+
+    [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
+
+5. Criar a View event_delete: Implementar a view de confirmação e a lógica de remoção de eventos (CRUD: Delete).	
 
     [Giovanni + Copilot - Agentic (Claude Sonnet 3.5)]
 
