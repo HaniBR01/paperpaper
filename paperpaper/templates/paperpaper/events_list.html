@@ -32,11 +32,19 @@
                                 </a>
                                 {% if event.editions.exists %}
                                     <span class="badge bg-success ms-2">
+<<<<<<< HEAD:paperpaper/templates/paperpaper/events_list.html
                                         {% if event.editions.count == 1 %}
                                             {{ event.editions.count }} edição
                                         {% else %}
                                             {{ event.editions.count }} edições
                                         {% endif %}
+=======
+                                    {% if event.editions.count == 1 %}
+                                        {{ event.editions.count }} edição
+                                    {% else %}
+                                        {{ event.editions.count }} edições
+                                    {% endif %}
+>>>>>>> 9c45444918da5913f56b4c0a2269f2e79f25752d:templates/paperpaper/events_list.html
                                     </span>
                                 {% endif %}
                             </div>
