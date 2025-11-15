@@ -687,6 +687,205 @@ class NotificationSubscribeViewTests(TestCase):
             ).exists()
         )
 
+class SendArticleNotificationsTests(TestCase):
+    """Testes para a função send_article_notifications"""
+
+    def setUp(self):
+        """Configuração para cada teste"""
+        self.event = Event.objects.create(
+            name='ICSE',
+            acronym='ICSE',
+            promoting_entity='IEEE'
+        )
+        self.edition = Edition.objects.create(
+            event=self.event,
+            year=2024,
+            location='Lisbon'
+        )
+        self.author = Author.objects.create(full_name='John Doe')
+        self.article = Article.objects.create(
+            title='Test Article',
+            edition=self.edition
+        )
+        self.article.authors.add(self.author)
+
+    @patch('django.core.mail.send_mail')  # Changed: patch where send_mail is imported FROM
+    def test_send_notification_to_active_subscriber(self, mock_send_mail):
+        """Testa envio de notificação para assinante ativo"""
+        from paperpaper.models import send_article_notifications
+        
+        # Criar assinatura ativa
+        subscription = NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+
+        # Chamar a função
+        send_article_notifications(self.article)
+
+        # Verificar que send_mail foi chamado
+        self.assertTrue(mock_send_mail.called)
+        self.assertEqual(mock_send_mail.call_count, 1)
+
+    @patch('django.core.mail.send_mail')  # Changed
+    def test_notification_email_subject(self, mock_send_mail):
+        """Testa assunto do email de notificação"""
+        from paperpaper.models import send_article_notifications
+        
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar o assunto do email
+        call_args = mock_send_mail.call_args
+        subject = call_args[0][0]  # Primeiro argumento
+        self.assertIn('Novo artigo disponível', subject)
+        self.assertIn('Test Article', subject)
+
+    @patch('django.core.mail.send_mail')  # Changed
+    def test_notification_email_content(self, mock_send_mail):
+        """Testa conteúdo do email de notificação"""
+        from paperpaper.models import send_article_notifications
+        
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar o conteúdo do email
+        call_args = mock_send_mail.call_args
+        message = call_args[0][1]  # Segundo argumento
+        
+        self.assertIn('John Doe', message)
+        self.assertIn('Test Article', message)
+        self.assertIn('ICSE', message)
+        self.assertIn('2024', message)
+
+    @patch('django.core.mail.send_mail')  # Changed
+    def test_notification_email_recipient(self, mock_send_mail):
+        """Testa destinatário do email"""
+        from paperpaper.models import send_article_notifications
+        
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar destinatário
+        call_args = mock_send_mail.call_args
+        recipients = call_args[0][3]  # Quarto argumento (lista de emails)
+        
+        self.assertEqual(len(recipients), 1)
+        self.assertIn('john@example.com', recipients)
+
+    @patch('django.core.mail.send_mail')  # Changed
+    def test_no_notification_for_inactive_subscriber(self, mock_send_mail):
+        """Testa que notificação NÃO é enviada para assinante inativo"""
+        from paperpaper.models import send_article_notifications
+        
+        # Criar assinatura inativa
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=False
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar que send_mail NÃO foi chamado
+        self.assertFalse(mock_send_mail.called)
+
+    @patch('django.core.mail.send_mail')  # Changed
+    def test_multiple_notifications_for_multiple_authors(self, mock_send_mail):
+        """Testa envio de notificações para múltiplos autores"""
+        from paperpaper.models import send_article_notifications
+        
+        # Adicionar segundo autor
+        author2 = Author.objects.create(full_name='Jane Smith')
+        self.article.authors.add(author2)
+
+        # Criar assinaturas para ambos autores
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+        NotificationSubscription.objects.create(
+            full_name='Jane Smith',
+            email='jane@example.com',
+            is_active=True
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar que send_mail foi chamado 2 vezes
+        self.assertEqual(mock_send_mail.call_count, 2)
+
+    @patch('django.core.mail.send_mail')  # Changed
+    def test_notification_with_case_insensitive_matching(self, mock_send_mail):
+        """Testa correspondência case-insensitive de nomes de autores"""
+        from paperpaper.models import send_article_notifications
+        
+        # Criar assinatura com nome em caixa diferente
+        NotificationSubscription.objects.create(
+            full_name='JOHN DOE',  # Maiúsculas
+            email='john@example.com',
+            is_active=True
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar que send_mail foi chamado (apesar da diferença de caixa)
+        self.assertTrue(mock_send_mail.called)
+
+    @patch('django.core.mail.send_mail', side_effect=Exception('SMTP Error'))  # Changed
+    def test_notification_handles_email_error_gracefully(self, mock_send_mail):
+        """Testa que erros de email são tratados sem quebrar o sistema"""
+        from paperpaper.models import send_article_notifications
+        
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+
+        # Não deve lançar exceção
+        try:
+            send_article_notifications(self.article)
+        except Exception:
+            self.fail("send_article_notifications raised Exception unexpectedly!")
+
+    @patch('django.core.mail.send_mail')
+    def test_notification_includes_article_url(self, mock_send_mail):
+        """Testa que a notificação inclui URL do artigo"""
+        from paperpaper.models import send_article_notifications
+        
+        NotificationSubscription.objects.create(
+            full_name='John Doe',
+            email='john@example.com',
+            is_active=True
+        )
+
+        send_article_notifications(self.article)
+
+        # Verificar que a URL está no corpo do email
+        call_args = mock_send_mail.call_args
+        message = call_args[0][1]
+        
+        # Verify the message contains a link to view the article
+        self.assertIn('Você pode visualizar o artigo em:', message)
+        self.assertIn(f'/articles/{self.article.pk}/', message)
 
 class ProcessBibtexEntryTests(TestCase):
     """Testes para a função process_bibtex_entry"""
