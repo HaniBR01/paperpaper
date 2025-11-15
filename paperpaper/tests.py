@@ -389,7 +389,7 @@ class AuthorsListViewTests(TestCase):
 
     def test_authors_list_pagination(self):
         """Testa paginação da lista de autores"""
-        # Criar 60 autores para testar paginação (50 por página)
+        # Criar 60 autores para testar paginação  (50 por página)
         for i in range(60):
             Author.objects.create(full_name=f'Author {i:03d}')
 
@@ -833,6 +833,353 @@ class EventDeleteViewTests(TestCase):
         """Testa que a deleção de evento retorna redirecionamento"""
         response = self.client.get(reverse('event_delete', kwargs={'slug': self.event.slug}))
         self.assertEqual(response.status_code, 302)
+
+
+class ArticleCRUDTests(TestCase):
+    """
+    Testes para HU-1: Cadastrar, editar e deletar artigos manualmente (Admin)
+    
+    História: Como administrador, eu quero cadastrar (editar, deletar) um artigo 
+    manualmente, incluindo seu pdf
+    """
+
+    def setUp(self):
+        """Configuração para cada teste"""
+        self.client = Client()
+        # Criar usuário admin
+        self.admin_user = User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='admin123'
+        )
+        # Criar dados de teste
+        self.event = Event.objects.create(
+            name='ICSE',
+            acronym='ICSE',
+            promoting_entity='IEEE'
+        )
+        self.edition = Edition.objects.create(
+            event=self.event,
+            year=2024,
+            location='Lisbon'
+        )
+        self.author = Author.objects.create(full_name='John Doe')
+        self.article = Article.objects.create(
+            title='Test Article',
+            edition=self.edition,
+            start_page=1,
+            end_page=10
+        )
+        self.article.authors.add(self.author)
+
+    def test_article_creation_in_admin(self):
+        """Testa criação de artigo através do admin"""
+        # Login no admin
+        self.client.login(username='admin', password='admin123')
+        
+        # Verificar que o artigo foi criado
+        self.assertTrue(
+            Article.objects.filter(title='Test Article').exists()
+        )
+
+    def test_article_with_pdf_file(self):
+        """Testa criação de artigo com arquivo PDF"""
+        # Criar um arquivo PDF simulado
+        pdf_content = b'%PDF-1.4\n...'
+        pdf_file = SimpleUploadedFile(
+            'test.pdf',
+            pdf_content,
+            content_type='application/pdf'
+        )
+        
+        # Criar artigo com PDF
+        article = Article.objects.create(
+            title='Article with PDF',
+            edition=self.edition,
+            pdf_file=pdf_file
+        )
+        article.authors.add(self.author)
+        
+        # Verificar que o PDF foi salvo
+        self.assertIsNotNone(article.pdf_file)
+        self.assertTrue(article.pdf_file.name.endswith('.pdf'))
+
+    def test_article_can_be_updated(self):
+        """Testa edição de um artigo"""
+        # Atualizar artigo
+        self.article.title = 'Updated Title'
+        self.article.start_page = 2
+        self.article.end_page = 20
+        self.article.save()
+        
+        # Verificar que foi atualizado
+        updated_article = Article.objects.get(pk=self.article.pk)
+        self.assertEqual(updated_article.title, 'Updated Title')
+        self.assertEqual(updated_article.start_page, 2)
+        self.assertEqual(updated_article.end_page, 20)
+
+    def test_article_can_be_deleted(self):
+        """Testa deleção de um artigo"""
+        article_id = self.article.pk
+        
+        # Deletar artigo
+        self.article.delete()
+        
+        # Verificar que foi deletado
+        self.assertFalse(
+            Article.objects.filter(pk=article_id).exists()
+        )
+
+    def test_article_pdf_file_upload_path(self):
+        """Testa que o path do PDF segue o padrão esperado"""
+        pdf_file = SimpleUploadedFile(
+            'conference_paper.pdf',
+            b'PDF content',
+            content_type='application/pdf'
+        )
+        
+        article = Article.objects.create(
+            title='Paper with PDF',
+            edition=self.edition,
+            pdf_file=pdf_file
+        )
+        
+        # Verificar que o caminho contém o padrão articles/evento/ano/
+        expected_path_pattern = f'articles/{self.event.slug}/{self.edition.year}/'
+        self.assertIn(expected_path_pattern, article.pdf_file.name)
+
+    def test_article_with_multiple_authors_crud(self):
+        """Testa CRUD de artigo com múltiplos autores"""
+        author2 = Author.objects.create(full_name='Jane Smith')
+        
+        article = Article.objects.create(
+            title='Multi-author Article',
+            edition=self.edition
+        )
+        article.authors.add(self.author, author2)
+        
+        # Verificar que ambos os autores foram adicionados
+        self.assertEqual(article.authors.count(), 2)
+        
+        # Remover um autor
+        article.authors.remove(author2)
+        self.assertEqual(article.authors.count(), 1)
+        
+        # Deletar artigo
+        article.delete()
+        self.assertFalse(
+            Article.objects.filter(title='Multi-author Article').exists()
+        )
+
+    def test_article_admin_access_control(self):
+        """Testa que apenas admin pode acessar admin interface"""
+        # Tentar acessar sem login
+        response = self.client.get('/admin/')
+        self.assertEqual(response.status_code, 302)  # Redireciona para login
+        
+        # Login como admin
+        self.client.login(username='admin', password='admin123')
+        response = self.client.get('/admin/')
+        self.assertEqual(response.status_code, 200)
+
+
+class AuthorHomePageTests(TestCase):
+    """
+    Testes para HU-2: Home page do autor com artigos organizados por ano
+    
+    História: Como usuário, eu quero ter uma home page com meus artigos, 
+    organizados por ano (Exemplo: simple-lib/authors/nome-autor)
+    """
+
+    def setUp(self):
+        """Configuração para cada teste"""
+        self.client = Client()
+        self.author = Author.objects.create(full_name='Alice Johnson')
+        
+        # Criar eventos e edições para diferentes anos
+        self.event = Event.objects.create(
+            name='ICSE',
+            acronym='ICSE',
+            promoting_entity='IEEE'
+        )
+        self.edition_2024 = Edition.objects.create(
+            event=self.event,
+            year=2024,
+            location='Lisbon'
+        )
+        self.edition_2023 = Edition.objects.create(
+            event=self.event,
+            year=2023,
+            location='Melbourne'
+        )
+        self.edition_2022 = Edition.objects.create(
+            event=self.event,
+            year=2022,
+            location='Austin'
+        )
+
+    def test_author_url_pattern(self):
+        """Testa que a URL do autor segue o padrão: /authors/nome-autor/"""
+        expected_url = f'/authors/{self.author.slug}/'
+        actual_url = self.author.get_absolute_url()
+        self.assertEqual(actual_url, expected_url)
+
+    def test_author_detail_page_loads(self):
+        """Testa que a página de detalhe do autor carrega"""
+        response = self.client.get(self.author.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'paperpaper/author_detail.html')
+
+    def test_author_articles_organized_by_year(self):
+        """Testa que os artigos do autor são organizados por ano"""
+        # Criar artigos em diferentes anos
+        article_2024_1 = Article.objects.create(
+            title='Article 2024 - Part 1',
+            edition=self.edition_2024
+        )
+        article_2024_1.authors.add(self.author)
+        
+        article_2024_2 = Article.objects.create(
+            title='Article 2024 - Part 2',
+            edition=self.edition_2024
+        )
+        article_2024_2.authors.add(self.author)
+        
+        article_2023 = Article.objects.create(
+            title='Article 2023',
+            edition=self.edition_2023
+        )
+        article_2023.authors.add(self.author)
+        
+        article_2022 = Article.objects.create(
+            title='Article 2022',
+            edition=self.edition_2022
+        )
+        article_2022.authors.add(self.author)
+        
+        # Acessar página do autor
+        response = self.client.get(self.author.get_absolute_url())
+        context = response.context
+        
+        # Verificar que os artigos estão organizados por ano
+        articles_by_year = context['articles_by_year']
+        
+        self.assertIn(2024, articles_by_year)
+        self.assertIn(2023, articles_by_year)
+        self.assertIn(2022, articles_by_year)
+        
+        # Verificar quantidade de artigos por ano
+        self.assertEqual(len(articles_by_year[2024]), 2)
+        self.assertEqual(len(articles_by_year[2023]), 1)
+        self.assertEqual(len(articles_by_year[2022]), 1)
+
+    def test_author_total_articles_count(self):
+        """Testa que a contagem total de artigos do autor está correta"""
+        # Criar 5 artigos para o autor
+        for i in range(5):
+            year = 2024 if i < 3 else 2023
+            edition = self.edition_2024 if year == 2024 else self.edition_2023
+            article = Article.objects.create(
+                title=f'Article {i+1}',
+                edition=edition
+            )
+            article.authors.add(self.author)
+        
+        response = self.client.get(self.author.get_absolute_url())
+        context = response.context
+        
+        # Verificar contagem total
+        self.assertEqual(context['total_articles'], 5)
+
+    def test_author_articles_ordered_by_year_descending(self):
+        """Testa que os artigos estão ordenados por ano descendente"""
+        # Criar artigos em ordem aleatória
+        article_2022 = Article.objects.create(
+            title='Article 2022',
+            edition=self.edition_2022
+        )
+        article_2022.authors.add(self.author)
+        
+        article_2024 = Article.objects.create(
+            title='Article 2024',
+            edition=self.edition_2024
+        )
+        article_2024.authors.add(self.author)
+        
+        article_2023 = Article.objects.create(
+            title='Article 2023',
+            edition=self.edition_2023
+        )
+        article_2023.authors.add(self.author)
+        
+        response = self.client.get(self.author.get_absolute_url())
+        context = response.context
+        articles_by_year = context['articles_by_year']
+        
+        # Verificar ordem
+        years_list = list(articles_by_year.keys())
+        self.assertEqual(years_list, [2024, 2023, 2022])
+
+    def test_author_page_displays_author_name(self):
+        """Testa que o nome do autor é exibido na página"""
+        response = self.client.get(self.author.get_absolute_url())
+        self.assertContains(response, self.author.full_name)
+
+    def test_author_page_with_no_articles(self):
+        """Testa página do autor que não tem artigos"""
+        new_author = Author.objects.create(full_name='Bob Smith')
+        
+        response = self.client.get(new_author.get_absolute_url())
+        context = response.context
+        
+        self.assertEqual(context['total_articles'], 0)
+        self.assertEqual(len(context['articles_by_year']), 0)
+
+    def test_author_articles_show_event_information(self):
+        """Testa que os artigos mostram informações do evento"""
+        article = Article.objects.create(
+            title='Conference Paper',
+            edition=self.edition_2024
+        )
+        article.authors.add(self.author)
+        
+        response = self.client.get(self.author.get_absolute_url())
+        
+        # Verificar que a informação do evento está acessível
+        self.assertContains(response, 'ICSE')
+        self.assertContains(response, '2024')
+
+    def test_author_slug_url_case_insensitive_slug(self):
+        """Testa que o slug é gerado corretamente para nomes com espaços"""
+        author = Author.objects.create(full_name='John Doe Smith')
+        
+        # Verificar slug
+        self.assertEqual(author.slug, 'john-doe-smith')
+        
+        # Acessar página com slug
+        response = self.client.get(author.get_absolute_url())
+        self.assertEqual(response.status_code, 200)
+
+    def test_author_detail_page_template_context(self):
+        """Testa que o contexto da página contém todas as informações necessárias"""
+        article = Article.objects.create(
+            title='Test Article',
+            edition=self.edition_2024
+        )
+        article.authors.add(self.author)
+        
+        response = self.client.get(self.author.get_absolute_url())
+        context = response.context
+        
+        # Verificar que todas as chaves necessárias existem no contexto
+        self.assertIn('author', context)
+        self.assertIn('articles_by_year', context)
+        self.assertIn('total_articles', context)
+        
+        # Verificar que os valores são corretos
+        self.assertEqual(context['author'], self.author)
+        self.assertGreaterEqual(len(context['articles_by_year']), 1)
+        self.assertEqual(context['total_articles'], 1)
 
 
 if __name__ == '__main__':
