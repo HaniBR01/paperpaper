@@ -414,27 +414,51 @@ class TestE2E04AuthorsListAndNotificationSubscription(StaticLiveServerTestCase):
     def test_submit_notification_subscription_form(self):
         """Testa submissão do formulário de inscrição de notificações"""
         self.driver.get(f'{self.live_server_url}/notifications/subscribe/')
-        
+    
+        # Esperar que os elementos do formulário existam
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.NAME, 'full_name'))
+        )
+
         try:
             name_input = self.driver.find_element(By.NAME, 'full_name')
             email_input = self.driver.find_element(By.NAME, 'email')
-            
+        
             timestamp = int(time.time())
             test_email = f'test.user.{timestamp}@example.com'
-            name_input.send_keys(f'Test User {timestamp}')
+            test_name = f'Test User {timestamp}'
+        
+            # Limpar campos antes de preencher
+            name_input.clear()
+            email_input.clear()
+        
+            # Preencher formulário
+            name_input.send_keys(test_name)
             email_input.send_keys(test_email)
-            
-            submit_button = self.driver.find_element(By.CSS_SELECTOR, 'button[type="submit"]')
+        
+            # Encontrar e clicar no botão de submit
+            submit_button = WebDriverWait(self.driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[type="submit"]'))
+            )
             submit_button.click()
-            
-            # Wait for either: URL change, success message, or form cleared
-            time.sleep(2)  # Give time for submission to process
-            
-            # Check if subscription was created
-            subscription_exists = NotificationSubscription.objects.filter(email=test_email).exists()
-            self.assertTrue(subscription_exists, "Subscription was not created")
-        except NoSuchElementException:
-            pass
+        
+            WebDriverWait(self.driver, 10).until(
+                lambda d: (
+                    d.current_url != f'{self.live_server_url}/notifications/subscribe/' or
+                    'success' in d.page_source.lower() or
+                    'inscrição' in d.page_source.lower()
+                )
+            )
+        
+            subscription = NotificationSubscription.objects.filter(email=test_email).first()
+            self.assertIsNotNone(subscription, f"Subscription was not created for {test_email}")
+            self.assertEqual(subscription.full_name, test_name)
+            self.assertTrue(subscription.is_active)
+        
+        except TimeoutException as e:
+            self.fail(f"Form submission failed: {str(e)}")
+        except NoSuchElementException as e:
+            self.fail(f"Form elements not found: {str(e)}")
 
 
 class TestE2E05ArticleNotifications(StaticLiveServerTestCase):
