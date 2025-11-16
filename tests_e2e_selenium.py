@@ -44,11 +44,9 @@ class TestE2E01HomePageNavigationAndStatistics(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.browser = webdriver.Chrome(options=options)
+        cls.browser = webdriver.Firefox(options=options)
         cls.browser.implicitly_wait(10)
         
         # Create test data in setUpClass so it's visible to live server
@@ -172,11 +170,9 @@ class TestE2E02SearchArticlesAndFilter(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.browser = webdriver.Chrome(options=options)
+        cls.browser = webdriver.Firefox(options=options)
         cls.browser.implicitly_wait(10)
     
     @classmethod
@@ -276,11 +272,9 @@ class TestE2E03BrowseEventsAndEditions(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.browser = webdriver.Chrome(options=options)
+        cls.browser = webdriver.Firefox(options=options)
         cls.browser.implicitly_wait(10)
     
     @classmethod
@@ -353,11 +347,9 @@ class TestE2E04AuthorsListAndNotificationSubscription(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.browser = webdriver.Chrome(options=options)
+        cls.browser = webdriver.Firefox(options=options)
         cls.browser.implicitly_wait(10)
     
     @classmethod
@@ -450,11 +442,9 @@ class TestE2E05ArticleNotifications(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.browser = webdriver.Chrome(options=options)
+        cls.browser = webdriver.Firefox(options=options)
         cls.browser.implicitly_wait(10)
     
     @classmethod
@@ -597,11 +587,9 @@ class TestE2E06BibtexImport(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        options = webdriver.ChromeOptions()
+        options = webdriver.FirefoxOptions()
         options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.browser = webdriver.Chrome(options=options)
+        cls.browser = webdriver.Firefox(options=options)
         cls.browser.implicitly_wait(10)
     
     @classmethod
